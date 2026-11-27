@@ -8,6 +8,14 @@ https://claude.ai/artifact/PADtY7AmhebTpe8AiyE871).
   rule-based quality score, source checks, approval gate, GitHub PR publishing, run log. 24 tests.
   _Not yet run against a live Supabase project: needs the owner's Supabase keys._
 - **Multi-project step 1:** moved to this repo with history; knowledge base files (`projects/`, `docs/`); CI.
+- **Privacy-first analytics PRs (owner to review/merge):** HatchElite PR #9 (PostHog, allowlisted pages and events,
+  URLs stripped, never on study pages); EVA PR #18 (cookieless, home/pricing/membership only, DNT/GPC/opt-out). EVA
+  sitemap.xml + robots.txt: EVA PR #17.
+- **Payment-reliability checks (roadmap item 3, partial):** `.github/workflows/site-checks.yml` runs daily per site
+  (`projects/<slug>/site-checks.json`): pages load, prices match `products.md`, HatchElite's trial button leads to
+  sign-up. Weekly Lighthouse table in the run summary. Read-only; analytics blocked so checks are not counted.
+  _Placeholder:_ reaching Stripe's checkout page needs a signed-in test account on each site (owner to create);
+  not built yet. EVA's sitemap/robots checks are optional until PR #17 is live.
 
 ## Next
 2. **Multi-project foundation:** additive migration (publishing_targets, products, audiences, knowledge_entries,
@@ -27,6 +35,9 @@ impact: Search Console → PostHog funnels → payment-reliability checks → en
 outreach.
 
 ## Waiting on the owner
+- Merge decisions: growth-engine #1, hatchelite #9, EVA #17 and #18 (EVA #18 also needs the privacy text approved and
+  `legal/legal.json` `last_updated` changed).
+- Optional: one test parent account per site (no payment card) so the daily check can confirm checkout opens.
 - Supabase project URL + anon key; apply `supabase/migrations/`.
 - DataForSEO: only if the cost is approved ($50 minimum top-up).
 - Firecrawl: URL and API key of the existing self-hosted install (not found in Documents/Desktop/Downloads).

@@ -16,3 +16,4 @@ Newest first.
 - Add GitHub Actions variables and `FIREBASE_SERVICE_ACCOUNT`, then deploy (README in the hatchelite repo).
 - Enable Google sign-in in Firebase Authentication.
 - Amazon book title and link once the book is live.
+| 2026-11-27 | Daily live-site checks added (pricing $19.99/$129.99, trial → sign-up) | growth-engine `site-checks.yml` |

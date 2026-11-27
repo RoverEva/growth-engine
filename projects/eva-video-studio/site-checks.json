@@ -1,0 +1,15 @@
+{
+  "$comment": "Read-only daily checks of the live site. Prices come from projects/eva-video-studio/products.md (source: Eva-Video-Studio main site/pricing.html, site/membership.html). The live site builds from eva-video-style until the cut-over; sitemap/robots are expected only after EVA PR #17 is live. Never signs in, never pays.",
+  "baseUrl": "https://evavideostudio.com",
+  "pages": [
+    { "path": "/", "expectStatus": 200 },
+    { "path": "/pricing.html", "expectText": ["$9.99"] },
+    { "path": "/membership.html", "expectText": ["$129", "$279", "$399"] },
+    { "path": "/privacy", "expectStatus": 200 },
+    { "path": "/terms", "expectStatus": 200 },
+    { "path": "/refund-policy", "expectStatus": 200 },
+    { "path": "/sitemap.xml", "expectStatus": 200, "raw": true, "optional": "until EVA PR #17 is live" },
+    { "path": "/robots.txt", "expectStatus": 200, "raw": true, "optional": "until EVA PR #17 is live" }
+  ],
+  "lighthouse": ["/", "/pricing.html", "/membership.html"]
+}
