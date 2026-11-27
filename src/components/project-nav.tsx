@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 
 const ITEMS = [
-  ["", "Dashboard"], ["/keywords", "Keywords"], ["/articles", "Articles"], ["/runs", "Run log"], ["/integrations", "Integrations"], ["/settings", "Settings"],
+  ["", "Dashboard"], ["/keywords", "Keywords"], ["/articles", "Articles"], ["/social", "Social"], ["/runs", "Run log"], ["/integrations", "Integrations"], ["/settings", "Settings"],
 ] as const;
 
 export function ProjectNav({ projectId }: { projectId: string }) {

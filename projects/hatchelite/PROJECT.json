@@ -25,6 +25,60 @@
     "deploy_workflow": ".github/workflows/deploy.yml (manual, or automatic when repo variable AUTO_DEPLOY=true)"
   },
   "contact_email": "contact@hatchelite.com",
-  "knowledge_files": ["brand.md", "products.md", "competitors.md", "site-architecture.md", "strategy.md", "progress.md"],
-  "verified": "2026-11-27 from the repository code; see sources in each file"
+  "knowledge_files": [
+    "brand.md",
+    "products.md",
+    "competitors.md",
+    "site-architecture.md",
+    "strategy.md",
+    "progress.md"
+  ],
+  "verified": "2026-11-27 from the repository code; see sources in each file",
+  "topic_terms": {
+    "$comment": "Keyword relevance weights (0-30) used by the engine's opportunity score. Edit here; the engine reads this file.",
+    "isee": 30,
+    "ssat": 30,
+    "sat": 20,
+    "vocabulary": 25,
+    "vocab": 25,
+    "words": 12,
+    "word": 10,
+    "synonyms": 18,
+    "synonym": 18,
+    "analogies": 18,
+    "analogy": 18,
+    "sentence completion": 18,
+    "reading comprehension": 15,
+    "reading": 8,
+    "test prep": 15,
+    "prep": 8,
+    "practice": 8,
+    "private school": 12,
+    "admission": 10,
+    "admissions": 10,
+    "grade": 8,
+    "1st grade": 6,
+    "2nd grade": 10,
+    "3rd grade": 12,
+    "4th grade": 12,
+    "5th grade": 12,
+    "6th grade": 12,
+    "7th grade": 12,
+    "8th grade": 12,
+    "flashcards": 10,
+    "list": 6,
+    "worksheet": 6,
+    "kids": 6,
+    "students": 6
+  },
+  "internal_link_examples": [
+    "/choose-program",
+    "/pricing",
+    "/blog"
+  ],
+  "social": {
+    "provider": "buffer",
+    "channels": "Linked in the engine (Social page); a channel can belong to this project only",
+    "alternative": "postiz"
+  }
 }

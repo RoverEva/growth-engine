@@ -2,12 +2,15 @@
 import { redirect } from "next/navigation";
 import { requireProject, requireUser } from "@/lib/auth";
 import { back, errorText, field } from "@/lib/flash";
+import { getManifest } from "@/lib/projects/registry";
 
 export async function createProject(form: FormData) {
   const { supabase } = await requireUser();
-  const siteUrl = field(form, "site_url").replace(/\/+$/, "");
+  // A project must exist in the knowledge base (projects/<slug>/PROJECT.json) before the engine can manage it.
+  const manifest = getManifest(field(form, "slug"));
+  if (!manifest) back("/", { error: "Choose a project from the knowledge base. Add projects/<slug>/PROJECT.json first." });
   const { data, error } = await supabase.rpc("create_project", {
-    p_name: field(form, "name"), p_site_url: siteUrl, p_github_repo: field(form, "github_repo") || null,
+    p_name: manifest.name, p_site_url: manifest.siteUrl, p_slug: manifest.slug, p_github_repo: manifest.repo,
   });
   if (error) back("/", { error: `Could not create the project: ${error.message}` });
   redirect(`/p/${data}`);
@@ -20,9 +23,6 @@ export async function updateProject(projectId: string, form: FormData) {
     const { error } = await supabase.from("projects").update({
       name: field(form, "name"),
       site_url: field(form, "site_url").replace(/\/+$/, ""),
-      github_repo: field(form, "github_repo") || null,
-      github_base_branch: field(form, "github_base_branch") || "v2-latest",
-      blog_content_path: field(form, "blog_content_path") || "hatchelite-v2-clean/src/content/blog",
       default_location_code: Number(field(form, "default_location_code")) || 2840,
       default_language_code: field(form, "default_language_code") || "en",
     }).eq("id", projectId);
@@ -44,7 +44,7 @@ export async function updateBrand(projectId: string, form: FormData) {
       voice: field(form, "voice"),
       products: field(form, "products"),
       topics_to_avoid: field(form, "topics_to_avoid"),
-      author_name: field(form, "author_name") || "HatchElite Team",
+      author_name: field(form, "author_name") || `${field(form, "brand_name") || "Site"} Team`,
       min_quality_score: Number.isFinite(minScore) ? Math.min(100, Math.max(0, Math.round(minScore))) : 70,
     }).eq("project_id", projectId);
     if (error) throw error;

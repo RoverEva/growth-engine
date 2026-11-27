@@ -12,7 +12,6 @@ export const env = {
   supabaseAnonKey: () => read("SUPABASE_ANON_KEY"),
   dataforseoLogin: () => read("DATAFORSEO_LOGIN"),
   dataforseoPassword: () => read("DATAFORSEO_PASSWORD"),
-  githubToken: () => read("GITHUB_TOKEN"),
   openaiKey: () => read("OPENAI_API_KEY"),
   gscCredentials: () => read("GSC_SERVICE_ACCOUNT_JSON"),
   triggerKey: () => read("TRIGGER_SECRET_KEY"),

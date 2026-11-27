@@ -2,6 +2,7 @@
 import { requireProject } from "@/lib/auth";
 import { back, errorText, field } from "@/lib/flash";
 import { fetchKeywordIdeas } from "@/lib/integrations/dataforseo";
+import { getManifest } from "@/lib/projects/registry";
 import { runAutomation } from "@/lib/runs";
 import { businessRelevance, opportunityScore } from "@/lib/seo/opportunity";
 
@@ -16,6 +17,7 @@ export async function researchKeywords(projectId: string, form: FormData) {
     const limit = Math.min(Math.max(Number(field(form, "limit")) || 100, 10), 500);
     const locationCode = project.default_location_code as number;
     const languageCode = project.default_language_code as string;
+    const terms = getManifest(project.slug)?.topicTerms ?? {};
 
     const { output } = await runAutomation(supabase, {
       projectId, kind: "keyword_research", userId: user.id,
@@ -25,7 +27,7 @@ export async function researchKeywords(projectId: string, form: FormData) {
       const { ideas, cost } = await fetchKeywordIdeas({ seeds, locationCode, languageCode, limit });
       log(`DataForSEO returned ${ideas.length} keyword ideas (cost $${cost}).`);
       const rows = ideas.map((idea) => {
-        const relevance = businessRelevance(idea.keyword);
+        const relevance = businessRelevance(idea.keyword, terms);
         return {
           project_id: projectId, keyword: idea.keyword, location_code: locationCode, language_code: languageCode,
           search_volume: idea.searchVolume, keyword_difficulty: idea.keywordDifficulty, cpc: idea.cpc, competition: idea.competition,
@@ -41,7 +43,7 @@ export async function researchKeywords(projectId: string, form: FormData) {
       log(`Saved ${rows.length} keywords (existing ones updated, status kept).`);
       return { output: { saved: rows.length, relevant: rows.filter((r) => (r.business_relevance ?? 0) > 0).length }, costUsd: cost };
     });
-    message = `Saved ${output.saved} keywords (${output.relevant} relevant to HatchElite).`;
+    message = `Saved ${output.saved} keywords (${output.relevant} relevant to ${project.name}).`;
   } catch (error) {
     back(path, { error: errorText(error) });
   }
@@ -54,7 +56,7 @@ export async function addKeyword(projectId: string, form: FormData) {
     const { supabase, project } = await requireProject(projectId, "editor");
     const keyword = field(form, "keyword");
     if (!keyword) throw new Error("Enter a keyword.");
-    const relevance = businessRelevance(keyword);
+    const relevance = businessRelevance(keyword, getManifest(project.slug)?.topicTerms ?? {});
     const { error } = await supabase.from("keywords").insert({
       project_id: projectId, keyword, location_code: project.default_location_code, language_code: project.default_language_code,
       business_relevance: relevance, opportunity_score: opportunityScore({ keyword, searchVolume: null, keywordDifficulty: null, intent: "unknown" }, relevance),

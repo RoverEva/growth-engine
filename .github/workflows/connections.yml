@@ -1,0 +1,38 @@
+name: Connection check
+
+# Checks the credentials the owner has added (names only, values never printed) and that each project's
+# GitHub token cannot write to another project's repo. Runs weekly and on demand.
+on:
+  schedule:
+    - cron: "41 15 * * 1"   # Mondays 15:41 UTC
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+      - name: Check connections
+        env:
+          SUPABASE_URL: ${{ secrets.SUPABASE_URL }}
+          SUPABASE_ANON_KEY: ${{ secrets.SUPABASE_ANON_KEY }}
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+          GSC_SERVICE_ACCOUNT_JSON: ${{ secrets.GSC_SERVICE_ACCOUNT_JSON }}
+          BUFFER_API_KEY: ${{ secrets.BUFFER_API_KEY }}
+          GITHUB_TOKEN__HATCHELITE: ${{ secrets.GITHUB_TOKEN__HATCHELITE }}
+          GITHUB_TOKEN__EVA_VIDEO_STUDIO: ${{ secrets.GITHUB_TOKEN__EVA_VIDEO_STUDIO }}
+          STRIPE_RESTRICTED_KEY__HATCHELITE: ${{ secrets.STRIPE_RESTRICTED_KEY__HATCHELITE }}
+          STRIPE_RESTRICTED_KEY__EVA_VIDEO_STUDIO: ${{ secrets.STRIPE_RESTRICTED_KEY__EVA_VIDEO_STUDIO }}
+          POSTHOG_PERSONAL_API_KEY__HATCHELITE: ${{ secrets.POSTHOG_PERSONAL_API_KEY__HATCHELITE }}
+          POSTHOG_PERSONAL_API_KEY__EVA_VIDEO_STUDIO: ${{ secrets.POSTHOG_PERSONAL_API_KEY__EVA_VIDEO_STUDIO }}
+        run: node scripts/check-connections.mjs --report report.md
+      - name: Summary
+        if: always()
+        run: cat report.md >> "$GITHUB_STEP_SUMMARY" || true

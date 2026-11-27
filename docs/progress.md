@@ -17,10 +17,19 @@ https://claude.ai/artifact/PADtY7AmhebTpe8AiyE871).
   _Placeholder:_ reaching Stripe's checkout page needs a signed-in test account on each site (owner to create);
   not built yet. EVA's sitemap/robots checks are optional until PR #17 is live.
 
+- **Multi-project step 2 (built; not yet run against a live Supabase):** migration `20261127000003` (project slug,
+  no HatchElite defaults, one repo per project, social channels/posts with owner approval), manifest registry with
+  `assertPublishTarget`, per-project secrets `NAME__<SLUG>`, PR branches `growth/<slug>/`, per-project keyword topic
+  terms in `PROJECT.json`, top-bar navigation, **/setup** account wizard, **/queue** cross-brand approval queue,
+  per-project **Social** page, Buffer adapter + Postiz alternative, `migrate.yml` (manual, dry run by default),
+  `connections.yml` (weekly credential + isolation check). 39 tests (17 database).
+  _Placeholders:_ Search Console verification status (needs the GSC sync), Buffer field names verified only against
+  Buffer's docs until the owner's key is added.
+
 ## Next
-2. **Multi-project foundation:** additive migration (publishing_targets, products, audiences, knowledge_entries,
-   crawl tables, outreach, strategy, GSC, conversions, project_credentials); remove hardcoded HatchElite defaults; header
-   project switcher; per-project relevance terms; cross-publishing safeguards; isolation tests.
+2. **Multi-project foundation (remaining):** additive migration (publishing_targets, products, audiences, knowledge_entries,
+   crawl tables, outreach, strategy, GSC, conversions). Done in step 2: defaults, switcher, relevance terms,
+   cross-publishing safeguards, isolation tests.
 3. **Website onboarding:** built-in crawler, optional Firecrawl, read-only repo inspector, Ollama extraction, competitor
    discovery, review screen. Validate on hatchelite.com.
 4. **Add EVA Video Studio:** onboarding, owner review, EVA-only GitHub token; research and strategy only.

@@ -2,12 +2,14 @@ import { addMember, removeMember, updateBrand, updateProject } from "@/app/actio
 import { SubmitButton } from "@/components/submit-button";
 import { Badge, Card, Notice, inputClass, labelClass } from "@/components/ui";
 import { requireProject } from "@/lib/auth";
+import { getManifest } from "@/lib/projects/registry";
 
 export default async function SettingsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { projectId } = await params;
   const flash = await searchParams;
   const { supabase, project, role, user } = await requireProject(projectId);
   const isOwner = role === "owner";
+  const manifest = getManifest(project.slug);
   const [{ data: brand }, { data: members }] = await Promise.all([
     supabase.from("brand_profiles").select("*").eq("project_id", projectId).maybeSingle(),
     supabase.rpc("project_member_list", { p_project: projectId }),
@@ -24,10 +26,18 @@ export default async function SettingsPage({ params, searchParams }: { params: P
             <fieldset disabled={!isOwner} className="grid gap-3">
               <label className={labelClass}>Name<input className={inputClass} name="name" defaultValue={project.name} required /></label>
               <label className={labelClass}>Website<input className={inputClass} name="site_url" defaultValue={project.site_url} required /></label>
-              <label className={labelClass}>GitHub repository<input className={inputClass} name="github_repo" defaultValue={project.github_repo ?? ""} placeholder="owner/repo" /></label>
+              <div className="rounded-lg bg-slate-50 p-3 text-sm text-slate-700">
+                <p className="font-medium">Publishing target (from <code>projects/{project.slug}/PROJECT.json</code>)</p>
+                {manifest ? (
+                  <ul className="mt-1 list-disc pl-5">
+                    <li>Repository: <code>{manifest.repo}</code>, branch <code>{manifest.baseBranch}</code></li>
+                    <li>Folder: <code>{manifest.publishing.contentPath ?? "none yet"}</code>; pull request branches start with <code>{manifest.publishing.branchPrefix}</code></li>
+                    <li>Publishing: {manifest.publishing.enabled ? "on (pull requests only)" : `off: ${manifest.publishing.reason ?? ""}`}</li>
+                  </ul>
+                ) : <p className="mt-1 text-red-700">No manifest for this project: publishing is blocked.</p>}
+                <p className="mt-1 text-xs text-slate-500">Change these in the knowledge base, not here, so the engine can never publish to another project&apos;s repository.</p>
+              </div>
               <div className="grid gap-3 sm:grid-cols-2">
-                <label className={labelClass}>Base branch<input className={inputClass} name="github_base_branch" defaultValue={project.github_base_branch} /></label>
-                <label className={labelClass}>Blog folder<input className={inputClass} name="blog_content_path" defaultValue={project.blog_content_path} /></label>
                 <label className={labelClass}>Location code<input className={inputClass} name="default_location_code" type="number" defaultValue={project.default_location_code} /></label>
                 <label className={labelClass}>Language code<input className={inputClass} name="default_language_code" defaultValue={project.default_language_code} /></label>
               </div>
