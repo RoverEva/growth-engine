@@ -20,8 +20,16 @@ https://claude.ai/artifact/PADtY7AmhebTpe8AiyE871).
 
 Then **Phase 2** (AI drafting and fact-checks, per project) and **Phase 3** (Search Console, analytics, Trigger.dev).
 
+## Tool stack
+Approved 2026-11-27: `docs/TOOL_STACK.md` (PostHog Cloud free, Search Console, Playwright + Lighthouse, existing
+Firecrawl, Claude/Codex, Supabase + Stripe; DataForSEO only with cost approval). Its roadmap is ordered by customer
+impact: Search Console → PostHog funnels → payment-reliability checks → engine step 2 → dashboard → Firecrawl →
+outreach.
+
 ## Waiting on the owner
 - Supabase project URL + anon key; apply `supabase/migrations/`.
-- DataForSEO login + API password.
+- DataForSEO: only if the cost is approved ($50 minimum top-up).
+- Firecrawl: URL and API key of the existing self-hosted install (not found in Documents/Desktop/Downloads).
+- Search Console domain verification; two PostHog projects; two restricted Stripe keys.
 - GitHub fine-grained tokens, one per website repo (Contents + Pull requests: read/write).
 - Ollama installed on the Mac (before step 3).

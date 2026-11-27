@@ -9,7 +9,8 @@ Chat history is not.
 1. `docs/progress.md`: what is done, in progress and next.
 2. `docs/architecture.md`: how the engine is built (Next.js app, Supabase, adapters).
 3. `docs/decisions/`: why things are the way they are (one dated file per decision).
-4. **Before touching a project:** everything in `projects/<slug>/`, starting with `PROJECT.json`.
+4. `docs/TOOL_STACK.md`: approved tools, costs, privacy rules, integration roadmap. Paid services need owner approval.
+5. **Before touching a project:** everything in `projects/<slug>/`, starting with `PROJECT.json`.
 
 | Project | Slug | Website | Status |
 | --- | --- | --- | --- |

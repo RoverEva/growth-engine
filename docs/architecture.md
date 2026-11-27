@@ -23,8 +23,9 @@ _Last updated: 2026-11-27_
 | Crawling | Built-in crawler (robots.txt, sitemap, navigation, up to ~200 pages) | Planned (multi-project step 3) |
 | Crawling | Self-hosted Firecrawl (`FIRECRAWL_URL`), optional | Planned |
 | Extraction / writing | Local Ollama (default) or OpenAI | Planned |
-| Analytics | Google Search Console; conversion analytics per project | Planned (Phase 3) |
-| Background jobs | Trigger.dev | Planned (Phase 3) |
+| Analytics | Google Search Console (SEO); PostHog Cloud free plan (conversion funnels, payment events); Stripe restricted read-only keys | Planned (see `docs/TOOL_STACK.md`) |
+| Site checks | Playwright + Lighthouse against the live sites (read-only, never pays) | Planned |
+| Background jobs | GitHub Actions schedules (Trigger.dev deferred: not needed yet) | Planned |
 
 Publishing currently reads the repo, branch and folder from the `projects` row. Multi-project step 2 moves these to a
 `publishing_targets` table with a cross-project uniqueness rule (see `docs/decisions/0002-multi-project.md`).
