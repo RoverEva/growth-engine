@@ -2,8 +2,8 @@ import type { Metadata } from "next";
 import "./globals.css";
 
 export const metadata: Metadata = {
-  title: "HatchElite SEO Engine",
-  description: "Keyword research, article quality control and publishing for hatchelite.com",
+  title: "Growth Engine",
+  description: "Keyword research, content quality control and publishing for multiple websites",
   robots: { index: false, follow: false },
 };
 

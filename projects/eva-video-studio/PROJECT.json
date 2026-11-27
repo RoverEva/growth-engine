@@ -1,0 +1,29 @@
+{
+  "slug": "eva-video-studio",
+  "name": "EVA Video Studio",
+  "status": "onboarding",
+  "primary_domain": "evavideostudio.com",
+  "site_url": "https://evavideostudio.com",
+  "timezone": "America/Los_Angeles",
+  "locale": "en-US",
+  "repository": {
+    "github": "RoverEva/Eva-Video-Studio",
+    "base_branch": "main",
+    "website_folder": "site",
+    "note": "Production website is still built from the public RoverEva/eva-video-style repo until the cut-over in MIGRATION.md is approved."
+  },
+  "publishing": {
+    "adapter": "github-static-html",
+    "enabled": false,
+    "reason": "No blog exists yet; build after the production cut-over (docs/decisions/0004-eva-publishing-timing.md)",
+    "planned_content_path": "site/blog",
+    "branch_prefix": "growth/eva-video-studio/"
+  },
+  "hosting": {
+    "provider": "Vercel",
+    "vercel_project": "eva-video-studio",
+    "deploy": "Manual GitHub workflows only, environment 'production', owner's authenticator code required; Git pushes never deploy"
+  },
+  "knowledge_files": ["brand.md", "products.md", "competitors.md", "site-architecture.md", "strategy.md", "progress.md"],
+  "verified": "2026-11-27: live homepage + read-only clone of RoverEva/Eva-Video-Studio @ main (4ebe830)"
+}

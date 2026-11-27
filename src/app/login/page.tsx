@@ -16,8 +16,8 @@ export default async function LoginPage({ searchParams }: { searchParams: Promis
         {!configured ? (
           <Card title="Setup needed">
             <p className="text-sm text-slate-600">
-              Supabase is not connected. Set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> in <code>seo-engine/.env.local</code>,
-              apply the migrations, and restart. See <code>seo-engine/README.md</code>.
+              Supabase is not connected. Set <code>SUPABASE_URL</code> and <code>SUPABASE_ANON_KEY</code> in <code>.env.local</code>,
+              apply the migrations, and restart. See <code>README.md</code>.
             </p>
           </Card>
         ) : (
