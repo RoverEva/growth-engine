@@ -1,4 +1,4 @@
-import { existsSync, readFileSync } from "node:fs";
+import { readFileSync } from "node:fs";
 import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { businessRelevance, opportunityScore } from "@/lib/seo/opportunity";
@@ -35,8 +35,8 @@ describe("scoreArticle", () => {
     expect(thin.checks.reduce((s, c) => s + c.max, 0)).toBe(100);
   });
 
-  const post = resolve(__dirname, "../../../hatchelite-v2-clean/src/content/blog/isee-vs-ssat.md");
-  it.skipIf(!existsSync(post))("scores the published ISEE vs SSAT post as passing", () => {
+  const post = resolve(__dirname, "../fixtures/hatchelite/isee-vs-ssat.md");
+  it("scores the published HatchElite ISEE vs SSAT post as passing", () => {
     const source = readFileSync(post, "utf8");
     const body = source.replace(/^---[\s\S]*?---\n/, "");
     const description = source.match(/^description: (.*)$/m)?.[1] ?? "";

@@ -1,4 +1,3 @@
-import { existsSync } from "node:fs";
 import { resolve } from "node:path";
 import { pathToFileURL } from "node:url";
 import { describe, expect, it } from "vitest";
@@ -36,10 +35,9 @@ describe("toBlogMarkdown", () => {
     expect(() => toBlogMarkdown({ ...article, date: "Dec 1" })).toThrow();
   });
 
-  // Contract test against the website's real blog loader, when the website code is present.
-  const loader = resolve(__dirname, "../../../hatchelite-v2-clean/scripts/blog-content.mjs");
-  const websiteDeps = resolve(__dirname, "../../../hatchelite-v2-clean/node_modules/marked");
-  it.skipIf(!existsSync(loader) || !existsSync(websiteDeps))("is accepted by the website's blog loader", async () => {
+  // Contract test against HatchElite's real blog loader (pinned copy, see tests/contracts/hatchelite/README.md).
+  const loader = resolve(__dirname, "../contracts/hatchelite/blog-content.mjs");
+  it("is accepted by HatchElite's blog loader", async () => {
     const { parsePost } = await import(pathToFileURL(loader).href);
     const post = parsePost(toBlogMarkdown(article), "isee-lower-level-vocabulary");
     expect(post.title).toBe(article.title);

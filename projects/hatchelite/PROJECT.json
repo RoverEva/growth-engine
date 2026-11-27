@@ -1,0 +1,30 @@
+{
+  "slug": "hatchelite",
+  "name": "HatchElite",
+  "status": "active",
+  "primary_domain": "hatchelite.com",
+  "site_url": "https://hatchelite.com",
+  "timezone": "America/Los_Angeles",
+  "locale": "en-US",
+  "repository": {
+    "github": "RoverEva/hatchelite",
+    "base_branch": "v2-latest",
+    "app_folder": "hatchelite-v2-clean"
+  },
+  "publishing": {
+    "adapter": "github-markdown",
+    "content_path": "hatchelite-v2-clean/src/content/blog",
+    "url_pattern": "https://hatchelite.com/blog/{slug}",
+    "branch_prefix": "growth/hatchelite/",
+    "goes_live_when": "PR merged into v2-latest AND the 'Deploy website' GitHub Action has run",
+    "contract": "tests/contracts/hatchelite/blog-content.mjs"
+  },
+  "hosting": {
+    "provider": "Firebase Hosting",
+    "firebase_project": "hatchelite-web",
+    "deploy_workflow": ".github/workflows/deploy.yml (manual, or automatic when repo variable AUTO_DEPLOY=true)"
+  },
+  "contact_email": "contact@hatchelite.com",
+  "knowledge_files": ["brand.md", "products.md", "competitors.md", "site-architecture.md", "strategy.md", "progress.md"],
+  "verified": "2026-11-27 from the repository code; see sources in each file"
+}

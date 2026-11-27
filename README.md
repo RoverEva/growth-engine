@@ -1,8 +1,18 @@
-# HatchElite SEO Engine
+# Growth Engine
 
-An internal tool to research keywords, write and quality-check blog articles, and publish them to **hatchelite.com/blog** through a reviewed pull request.
+One shared SEO and marketing engine for several independent websites (projects). **Start with `CLAUDE.md`**: project
+list, isolation rules, and where each project's knowledge lives (`projects/<slug>/`, `docs/`).
 
-It is a separate Next.js app in this repo (`seo-engine/`). It does **not** change the website in `hatchelite-v2-clean/`; it only adds Markdown posts through pull requests, in the format the website's blog build already uses.
+| Project | Website | Status |
+| --- | --- | --- |
+| HatchElite | https://hatchelite.com | Active; publishes through PRs into `RoverEva/hatchelite` |
+| EVA Video Studio | https://evavideostudio.com | Onboarding; publishing off until its blog adapter exists |
+
+The engine never changes a website directly. Publishing opens a pull request in that website's repo; merging and
+deploying stay with the owner.
+
+> Multi-project support is being added in steps (see `docs/progress.md`). The Phase 1 features below were built for a
+> single project (HatchElite) and still contain HatchElite defaults until multi-project step 2.
 
 ## What works today (Phase 1) and what doesn't yet
 
@@ -32,14 +42,13 @@ It is a separate Next.js app in this repo (`seo-engine/`). It does **not** chang
 
 1. Create a Supabase project (or use your existing one).
 2. Apply the migrations in `supabase/migrations/` in name order. Either:
-   - **Supabase CLI:** `cd seo-engine && npx supabase login && npx supabase init` (keep the existing migrations), then `npx supabase link --project-ref <ref>` and `npx supabase db push`; or
+   - **Supabase CLI:** `npx supabase login && npx supabase init` (keep the existing migrations), then `npx supabase link --project-ref <ref>` and `npx supabase db push`; or
    - **SQL editor:** paste each file's contents into Supabase → SQL Editor and run them in order.
 3. Authentication → URL configuration: set **Site URL** to the app's URL (e.g. `http://localhost:3000`) and add `<APP_URL>/auth/confirm` to the redirect URLs.
 
 ### 2. Environment
 
 ```bash
-cd seo-engine
 cp .env.example .env.local   # fill in the values; see comments in the file
 npm ci
 npm run dev                  # http://localhost:3000
@@ -85,6 +94,7 @@ npm run typecheck && npm run lint && npm run build
 TEST_DATABASE_URL=postgres://postgres@localhost:5432/seo_test npm run test:db
 ```
 
+The HatchElite blog-format contract test uses a pinned copy of HatchElite's loader (`tests/contracts/hatchelite/`).
 `tests/db/supabase-shim.sql` creates a minimal `auth` schema so the migrations run on plain Postgres for testing. Never run it against Supabase.
 
 ## Project layout

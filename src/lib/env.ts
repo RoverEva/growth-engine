@@ -26,7 +26,7 @@ export function requireEnv(value: string | undefined, name: string): string {
 
 export class MissingConfigError extends Error {
   constructor(public readonly variable: string) {
-    super(`${variable} is not set. Add it to .env.local (see seo-engine/README.md).`);
+    super(`${variable} is not set. Add it to .env.local (see README.md).`);
     this.name = "MissingConfigError";
   }
 }
