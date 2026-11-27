@@ -52,7 +52,7 @@ describe.skipIf(!url)("database: RLS, duplicates and approval gate", () => {
       await db.query("insert into auth.users (id, email) values ($1, $2)", [id, `${id}@test.local`]);
     }
     projectId = await as(owner, async (c) => {
-      const { rows } = await c.query("select public.create_project('HatchElite', 'https://hatchelite.com', 'RoverEva/hatchelite') as id");
+      const { rows } = await c.query("select public.create_project('HatchElite', 'https://hatchelite.com', 'hatchelite', 'RoverEva/hatchelite') as id");
       await c.query("insert into public.project_members (project_id, user_id, role) values ($1, $2, 'editor'), ($1, $3, 'viewer')", [rows[0].id, editor, viewer]);
       return rows[0].id as string;
     });
@@ -152,9 +152,70 @@ describe.skipIf(!url)("database: RLS, duplicates and approval gate", () => {
   });
 
   it("keeps child rows inside their article's project", async () => {
-    const other = await as(stranger, async (c) => (await c.query("select public.create_project('Other', 'https://example.com', null) as id")).rows[0].id as string);
+    const other = await as(stranger, async (c) => (await c.query("select public.create_project('Other', 'https://example.com', 'other', null) as id")).rows[0].id as string);
     const articleId = await as(editor, async (c) => (await c.query("select id from public.articles where project_id = $1 limit 1", [projectId])).rows[0].id as string);
     await expect(as(stranger, (c) => c.query("insert into public.article_sources (article_id, project_id, url) values ($1, $2, 'https://example.com')", [articleId, other])))
       .rejects.toThrow(/does not belong/);
+  });
+
+  describe("multi-project isolation and the social approval queue", () => {
+    let evaId: string;
+    let channelId: string;
+    let evaChannelId: string;
+
+    beforeAll(async () => {
+      evaId = await as(stranger, async (c) => (await c.query("select public.create_project('EVA Video Studio', 'https://evavideostudio.com', 'eva-video-studio', 'RoverEva/Eva-Video-Studio') as id")).rows[0].id as string);
+      channelId = await as(owner, async (c) => (await c.query("insert into public.social_channels (project_id, provider, external_id, service) values ($1, 'buffer', 'he-linkedin', 'linkedin') returning id", [projectId])).rows[0].id as string);
+      evaChannelId = await as(stranger, async (c) => (await c.query("insert into public.social_channels (project_id, provider, external_id, service) values ($1, 'buffer', 'eva-instagram', 'instagram') returning id", [evaId])).rows[0].id as string);
+    });
+
+    it("new projects get no HatchElite defaults", async () => {
+      const rows = await as(stranger, async (c) => (await c.query("select p.slug, p.github_base_branch, p.blog_content_path, b.brand_name, b.author_name, b.products from public.projects p join public.brand_profiles b on b.project_id = p.id where p.id = $1", [evaId])).rows);
+      expect(rows[0]).toEqual({ slug: "eva-video-studio", github_base_branch: null, blog_content_path: null, brand_name: "EVA Video Studio", author_name: "EVA Video Studio Team", products: "" });
+    });
+
+    it("a website repo can belong to only one project", async () => {
+      await expect(as(stranger, (c) => c.query("select public.create_project('Copy', 'https://copy.example', 'copy', 'roveREVA/HatchElite')")))
+        .rejects.toThrow(/projects_github_repo_unique/);
+    });
+
+    it("a social channel can belong to only one project", async () => {
+      await expect(as(stranger, (c) => c.query("insert into public.social_channels (project_id, provider, external_id) values ($1, 'buffer', 'he-linkedin')", [evaId])))
+        .rejects.toThrow(/social_channels_provider_external_key/);
+    });
+
+    it("members of one project cannot see the other project's channels or posts", async () => {
+      const rows = await as(owner, async (c) => (await c.query("select id from public.social_channels where project_id = $1", [evaId])).rows);
+      expect(rows).toHaveLength(0);
+    });
+
+    it("a post cannot use another project's channel, even for an owner of both", async () => {
+      await db.query("insert into public.project_members (project_id, user_id, role) values ($1, $2, 'owner')", [evaId, owner]);
+      try {
+        await expect(as(owner, (c) => c.query("insert into public.social_posts (project_id, channel_id, body) values ($1, $2, 'Hello')", [projectId, evaChannelId])))
+          .rejects.toThrow(/social_posts_channel_same_project/);
+      } finally {
+        await db.query("delete from public.project_members where project_id = $1 and user_id = $2", [evaId, owner]);
+      }
+    });
+
+    it("only an owner approves, and only approved posts can be queued", async () => {
+      const postId = await as(editor, async (c) => (await c.query("insert into public.social_posts (project_id, channel_id, body, status) values ($1, $2, 'New ISEE guide', 'in_review') returning id", [projectId, channelId])).rows[0].id as string);
+      await expect(as(editor, (c) => c.query("update public.social_posts set status = 'queued' where id = $1", [postId]))).rejects.toThrow(/Only approved posts/);
+      await expect(as(editor, (c) => c.query("update public.social_posts set status = 'approved' where id = $1", [postId]))).rejects.toThrow(/Only a project owner/);
+      await as(owner, (c) => c.query("update public.social_posts set status = 'approved' where id = $1", [postId]));
+      // Editing approved text sends it back to review.
+      await as(editor, (c) => c.query("update public.social_posts set body = 'Edited' where id = $1", [postId]));
+      const after = await as(owner, async (c) => (await c.query("select status, approved_by from public.social_posts where id = $1", [postId])).rows[0]);
+      expect(after).toEqual({ status: "in_review", approved_by: null });
+      await as(owner, (c) => c.query("update public.social_posts set status = 'approved' where id = $1", [postId]));
+      await as(editor, (c) => c.query("update public.social_posts set status = 'queued', external_post_id = 'b1' where id = $1", [postId]));
+      await expect(as(editor, (c) => c.query("update public.social_posts set body = 'Too late' where id = $1", [postId]))).rejects.toThrow(/already in the publishing queue/);
+    });
+
+    it("new posts cannot skip review", async () => {
+      await expect(as(owner, (c) => c.query("insert into public.social_posts (project_id, channel_id, body, status) values ($1, $2, 'x', 'approved')", [projectId, channelId])))
+        .rejects.toThrow(/start as draft or in_review/);
+    });
   });
 });

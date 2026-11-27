@@ -24,6 +24,46 @@
     "vercel_project": "eva-video-studio",
     "deploy": "Manual GitHub workflows only, environment 'production', owner's authenticator code required; Git pushes never deploy"
   },
-  "knowledge_files": ["brand.md", "products.md", "competitors.md", "site-architecture.md", "strategy.md", "progress.md"],
-  "verified": "2026-11-27: live homepage + read-only clone of RoverEva/Eva-Video-Studio @ main (4ebe830)"
+  "knowledge_files": [
+    "brand.md",
+    "products.md",
+    "competitors.md",
+    "site-architecture.md",
+    "strategy.md",
+    "progress.md"
+  ],
+  "verified": "2026-11-27: live homepage + read-only clone of RoverEva/Eva-Video-Studio @ main (4ebe830)",
+  "topic_terms": {
+    "$comment": "Starting set, unverified against search data; review after the first keyword research run.",
+    "video editing": 25,
+    "video editor": 25,
+    "edit video": 20,
+    "talking head": 30,
+    "captions": 20,
+    "subtitles": 18,
+    "bilingual": 20,
+    "chinese": 12,
+    "ai video": 25,
+    "short video": 18,
+    "reels": 15,
+    "tiktok": 12,
+    "youtube shorts": 15,
+    "template": 12,
+    "templates": 12,
+    "kinetic": 15,
+    "motion graphics": 15,
+    "creator": 10,
+    "founder": 8,
+    "style": 6
+  },
+  "internal_link_examples": [
+    "/studio.html",
+    "/pricing.html",
+    "/membership.html"
+  ],
+  "social": {
+    "provider": "buffer",
+    "channels": "Linked in the engine (Social page); a channel can belong to this project only",
+    "alternative": "postiz"
+  }
 }

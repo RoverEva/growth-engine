@@ -8,9 +8,9 @@ export async function testIntegrationAction(projectId: string, id: IntegrationId
   let notice = "";
   try {
     const { project } = await requireProject(projectId, "editor");
-    const info = listIntegrations().find((i) => i.id === id);
+    const info = listIntegrations(project.slug).find((i) => i.id === id);
     if (!info?.configured) throw new Error(`${info?.name ?? id} is not configured. Set ${info?.envVars.join(", ")} first.`);
-    notice = `${info.name}: ${await testIntegration(id, { githubRepo: project.github_repo })}`;
+    notice = `${info.name}: ${await testIntegration(id, { slug: project.slug, githubRepo: project.github_repo })}`;
   } catch (error) {
     back(path, { error: `Connection test failed: ${errorText(error)}` });
   }

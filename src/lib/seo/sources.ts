@@ -19,7 +19,7 @@ export async function checkSourceUrl(raw: string): Promise<{ ok: boolean; status
   const attempt = async (method: "HEAD" | "GET") => {
     const response = await fetch(raw, {
       method, redirect: "follow", signal: AbortSignal.timeout(10000),
-      headers: { "User-Agent": "HatchEliteSEOEngine/1.0 (+source check)" },
+      headers: { "User-Agent": "GrowthEngine/1.0 (+source check)" },
     });
     return response.status;
   };

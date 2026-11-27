@@ -4,6 +4,7 @@ import { SubmitButton } from "@/components/submit-button";
 import { TopBar } from "@/components/top-bar";
 import { Badge, Card, Empty, Notice, inputClass, labelClass } from "@/components/ui";
 import { requireUser } from "@/lib/auth";
+import { listManifests } from "@/lib/projects/registry";
 
 export default async function Home({ searchParams }: { searchParams: Promise<Record<string, string | undefined>> }) {
   const params = await searchParams;
@@ -37,9 +38,12 @@ export default async function Home({ searchParams }: { searchParams: Promise<Rec
         </Card>
         <Card title="New project">
           <form action={createProject} className="grid gap-3 sm:grid-cols-2">
-            <label className={labelClass}>Name<input className={inputClass} name="name" defaultValue="HatchElite" required /></label>
-            <label className={labelClass}>Website<input className={inputClass} name="site_url" defaultValue="https://hatchelite.com" pattern="https://[^/]+/?" required /></label>
-            <label className={`${labelClass} sm:col-span-2`}>GitHub repository (owner/repo)<input className={inputClass} name="github_repo" defaultValue="RoverEva/hatchelite" /></label>
+            <label className={`${labelClass} sm:col-span-2`}>Project from the knowledge base
+              <select className={inputClass} name="slug" required>
+                {listManifests().map((m) => <option key={m.slug} value={m.slug}>{m.name} ({m.siteUrl}) · {m.status}</option>)}
+              </select>
+            </label>
+            <p className="text-xs text-slate-500 sm:col-span-2">Name, website and repository come from <code>projects/&lt;slug&gt;/PROJECT.json</code>.</p>
             <div><SubmitButton pending="Creating…">Create project</SubmitButton></div>
           </form>
         </Card>

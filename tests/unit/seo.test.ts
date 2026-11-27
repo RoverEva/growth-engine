@@ -3,15 +3,25 @@ import { resolve } from "node:path";
 import { describe, expect, it } from "vitest";
 import { businessRelevance, opportunityScore } from "@/lib/seo/opportunity";
 import { scoreArticle } from "@/lib/seo/quality";
+import { getManifest } from "@/lib/projects/registry";
+
+const he = getManifest("hatchelite")!.topicTerms;
+const eva = getManifest("eva-video-studio")!.topicTerms;
+const score = (keyword: string, searchVolume: number, keywordDifficulty: number, intent: string) =>
+  opportunityScore({ keyword, searchVolume, keywordDifficulty, intent }, businessRelevance(keyword, he));
 
 describe("opportunity score", () => {
   it("prefers relevant, reachable keywords", () => {
-    const good = opportunityScore({ keyword: "isee vocabulary list", searchVolume: 880, keywordDifficulty: 18, intent: "informational" });
-    const hard = opportunityScore({ keyword: "isee vocabulary list", searchVolume: 880, keywordDifficulty: 85, intent: "informational" });
-    const offTopic = opportunityScore({ keyword: "erb login", searchVolume: 2400, keywordDifficulty: 10, intent: "navigational" });
+    const good = score("isee vocabulary list", 880, 18, "informational");
+    const hard = score("isee vocabulary list", 880, 85, "informational");
+    const offTopic = score("erb login", 2400, 10, "navigational");
     expect(good).toBeGreaterThan(hard);
     expect(offTopic).toBe(0);
-    expect(businessRelevance("3rd grade vocabulary words")).toBeGreaterThan(20);
+    expect(businessRelevance("3rd grade vocabulary words", he)).toBeGreaterThan(20);
+    // Each project scores against its own terms only.
+    expect(businessRelevance("isee vocabulary list", eva)).toBe(0);
+    expect(businessRelevance("talking head video captions", he)).toBe(0);
+    expect(businessRelevance("talking head video captions", eva)).toBeGreaterThan(20);
     expect(good).toBeGreaterThanOrEqual(0);
     expect(good).toBeLessThanOrEqual(100);
   });

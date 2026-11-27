@@ -54,8 +54,10 @@ npm ci
 npm run dev                  # http://localhost:3000
 ```
 
-Required for Phase 1: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD`, `GITHUB_TOKEN`.
-The GitHub token should be a **fine-grained** token for `RoverEva/hatchelite` only, with **Contents** and **Pull requests** set to *Read and write*.
+Required: `SUPABASE_URL`, `SUPABASE_ANON_KEY`, and one GitHub token per project (`GITHUB_TOKEN__HATCHELITE`,
+`GITHUB_TOKEN__EVA_VIDEO_STUDIO`): **fine-grained**, limited to that project's repo, **Contents** and **Pull requests**
+*Read and write*. Optional: `BUFFER_API_KEY` (social posts), `DATAFORSEO_*` (paid; deferred). The `/setup` page lists
+every account and shows which are done. `npm run site-checks <slug>` runs the live-site checks locally.
 
 ### 3. First run
 

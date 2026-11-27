@@ -24,11 +24,26 @@ _Last updated: 2026-11-27_
 | Crawling | Self-hosted Firecrawl (`FIRECRAWL_URL`), optional | Planned |
 | Extraction / writing | Local Ollama (default) or OpenAI | Planned |
 | Analytics | Google Search Console (SEO); PostHog Cloud free plan (conversion funnels, payment events); Stripe restricted read-only keys | Planned (see `docs/TOOL_STACK.md`) |
-| Site checks | Playwright + Lighthouse against the live sites (read-only, never pays) | Planned |
+| Site checks | Playwright + Lighthouse against the live sites (read-only, never pays): `.github/workflows/site-checks.yml` | Working (daily; checkout-page step is a placeholder) |
+| Social | Buffer GraphQL API (`src/lib/social/buffer.ts`); Postiz public API as the open-source alternative (`postiz.ts`) | Built; untested against a real Buffer account until the owner adds the key |
+| Connection check | `scripts/check-connections.mjs` (weekly workflow): tests each credential and that a project's GitHub token can't write to another project's repo | Working |
 | Background jobs | GitHub Actions schedules (Trigger.dev deferred: not needed yet) | Planned |
 
-Publishing currently reads the repo, branch and folder from the `projects` row. Multi-project step 2 moves these to a
-`publishing_targets` table with a cross-project uniqueness rule (see `docs/decisions/0002-multi-project.md`).
+## Isolation (multi-project step 2)
+
+- **Manifest is the source of truth.** `src/lib/projects/registry.ts` imports every `projects/<slug>/PROJECT.json`.
+  Publishing reads the repo, branch, folder, branch prefix (`growth/<slug>/`) and timezone from it, and
+  `assertPublishTarget()` refuses any other repo or a project whose publishing is off. A project can only be created in
+  the engine from a manifest. (This replaces the planned `publishing_targets` table: one fewer place to keep in sync.)
+- **Database rules:** `projects.slug` is unique; a GitHub repo can belong to one project
+  (`projects_github_repo_unique`); a social channel can belong to one project (`social_channels_provider_external_key`);
+  a post can only use a channel of its own project (composite foreign key). RLS keeps every row inside its project.
+- **Credentials:** project secrets are `NAME__<SLUG>` and are never read for another project or from an unscoped
+  fallback. The only shared keys are account-level ones (Supabase, the GSC service account, Buffer's single free-plan
+  key); Buffer posting is still limited to channels linked to the post's project.
+- **Approval:** articles (`enforce_article_workflow`) and social posts (`enforce_social_post_workflow`) can only be
+  approved by a project owner, and only approved items can be published or sent. `/queue` lists everything waiting
+  across the brands a user belongs to; each action runs in its own project with that project's role.
 
 ## Knowledge base
 

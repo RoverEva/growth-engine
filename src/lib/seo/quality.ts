@@ -161,7 +161,7 @@ export function scoreArticle(input: QualityInput, minScore = 70): QualityResult 
   add({ id: "sources-section", category: "evidence", max: 5, points: hasSourcesSection ? 5 : 0, passed: hasSourcesSection,
     message: hasSourcesSection ? "Has a Sources section." : "Add a \"## Sources\" section listing the pages used." });
   add({ id: "internal-links", category: "evidence", max: 10, points: internalLinks >= 2 && internalLinks <= 10 ? 10 : internalLinks === 1 ? 5 : internalLinks > 10 ? 6 : 0,
-    passed: internalLinks >= 2 && internalLinks <= 10, message: `${internalLinks} internal link(s). Link 2–10 times to HatchElite pages (e.g. /choose-program, /pricing, other posts).` });
+    passed: internalLinks >= 2 && internalLinks <= 10, message: `${internalLinks} internal link(s). Link 2–10 times to your own site's pages (product, pricing, other posts).` });
 
   // Voice and originality (10)
   add({ id: "cliches", category: "voice", max: 6, points: clicheHits === 0 ? 6 : clicheHits <= 2 ? 3 : 0, passed: clicheHits === 0,

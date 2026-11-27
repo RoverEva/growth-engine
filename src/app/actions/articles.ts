@@ -5,6 +5,7 @@ import { buildMarkdown } from "@/lib/content/publish";
 import { isValidSlug, slugify } from "@/lib/content/slug";
 import { back, errorText, field } from "@/lib/flash";
 import { getPullRequestState, openArticlePullRequest } from "@/lib/integrations/github";
+import { assertPublishTarget, getManifest } from "@/lib/projects/registry";
 import { runAutomation } from "@/lib/runs";
 import { QUALITY_ENGINE_VERSION, scoreArticle } from "@/lib/seo/quality";
 import { checkSourceUrl, isCheckableUrl } from "@/lib/seo/sources";
@@ -21,7 +22,7 @@ function friendly(error: unknown) {
 export async function createArticle(projectId: string, form: FormData) {
   let id = "";
   try {
-    const { supabase, user } = await requireProject(projectId, "editor");
+    const { supabase, user, project } = await requireProject(projectId, "editor");
     const keywordId = field(form, "keyword_id") || null;
     let targetKeyword = field(form, "target_keyword");
     if (keywordId) {
@@ -34,7 +35,7 @@ export async function createArticle(projectId: string, form: FormData) {
     const { data: brand } = await supabase.from("brand_profiles").select("author_name").eq("project_id", projectId).maybeSingle();
     const { data, error } = await supabase.from("articles").insert({
       project_id: projectId, keyword_id: keywordId, target_keyword: targetKeyword, title, slug: slugify(title),
-      author_name: brand?.author_name ?? "HatchElite Team", created_by: user.id,
+      author_name: brand?.author_name || `${project.name} Team`, created_by: user.id,
     }).select("id").single();
     if (error) throw error;
     if (keywordId) await supabase.from("keywords").update({ status: "in_use" }).eq("id", keywordId);
@@ -187,20 +188,22 @@ export async function publishArticle(projectId: string, articleId: string) {
   let notice = "";
   try {
     const { supabase, user, project } = await requireProject(projectId, "owner");
-    if (!project.github_repo) throw new Error("Set the GitHub repository in project settings first.");
+    // Cross-publishing safeguard: only the repo named in projects/<slug>/PROJECT.json, and only if publishing is on.
+    const manifest = assertPublishTarget(project.slug, project.github_repo);
     const { data: article } = await supabase.from("articles").select("*").eq("id", articleId).eq("project_id", projectId).single();
     if (!article) throw new Error("Article not found.");
     if (article.status !== "approved") throw new Error("Only approved articles can be published.");
-    const markdown = buildMarkdown(article);
+    const markdown = buildMarkdown(article, manifest.timezone);
 
     const { output } = await runAutomation(supabase, {
       projectId, kind: "publish_article", userId: user.id, input: { articleId, slug: article.slug }, idempotencyKey: `publish:${articleId}`,
     }, async (log) => {
       const pr = await openArticlePullRequest({
-        repo: project.github_repo, baseBranch: project.github_base_branch, contentPath: project.blog_content_path,
+        projectSlug: manifest.slug, branchPrefix: manifest.publishing.branchPrefix,
+        repo: manifest.repo, baseBranch: manifest.baseBranch, contentPath: manifest.publishing.contentPath!,
         slug: article.slug, markdown, title: article.title,
         prBody: [
-          `New blog post from the HatchElite SEO Engine.`,
+          `New ${manifest.name} blog post from the Growth Engine (project \`${manifest.slug}\`).`,
           ``,
           `- **Target keyword:** ${article.target_keyword}`,
           `- **Quality score:** ${article.quality_score}/100 (engine ${QUALITY_ENGINE_VERSION})`,
@@ -232,7 +235,7 @@ export async function refreshPublishStatus(projectId: string, articleId: string)
     const { supabase, project } = await requireProject(projectId, "owner");
     const { data: article } = await supabase.from("articles").select("status, pr_number").eq("id", articleId).single();
     if (!article?.pr_number || article.status !== "pr_open") throw new Error("This article has no open pull request.");
-    const pr = await getPullRequestState(project.github_repo, article.pr_number);
+    const pr = await getPullRequestState(project.slug, getManifest(project.slug)?.repo ?? project.github_repo, article.pr_number);
     if (pr.merged) {
       const { error } = await supabase.from("articles").update({ status: "published", published_at: pr.mergedAt }).eq("id", articleId);
       if (error) throw error;

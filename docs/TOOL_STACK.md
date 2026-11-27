@@ -98,3 +98,5 @@ approval.
 | GitHub (PRs) | `GITHUB_TOKEN__HATCHELITE` (repo `RoverEva/hatchelite` only) | `GITHUB_TOKEN__EVA_VIDEO_STUDIO` (repo `RoverEva/Eva-Video-Studio` only) |
 | Firecrawl | `FIRECRAWL_URL`, `FIRECRAWL_API_KEY` (shared tool; crawl results stored per project) | same |
 | DataForSEO | `DATAFORSEO_LOGIN`, `DATAFORSEO_PASSWORD` (shared, if approved) | same |
+| Buffer (social) | `BUFFER_API_KEY` (account-level; free plan has 1 key) or `BUFFER_API_KEY__HATCHELITE`; channels linked to this project only | channels linked to EVA only |
+| Postiz (alternative) | `POSTIZ_API_KEY` [+ `POSTIZ_API_URL` if self-hosted] | same |

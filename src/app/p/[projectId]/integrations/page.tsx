@@ -7,8 +7,8 @@ import { listIntegrations } from "@/lib/integrations/status";
 export default async function IntegrationsPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { projectId } = await params;
   const flash = await searchParams;
-  const { role } = await requireProject(projectId);
-  const integrations = listIntegrations();
+  const { role, project } = await requireProject(projectId);
+  const integrations = listIntegrations(project.slug);
   return (
     <div className="grid gap-6">
       <h1 className="text-2xl font-bold">Integrations</h1>

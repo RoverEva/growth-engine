@@ -1,0 +1,43 @@
+name: Apply database migrations
+
+# Installs or updates the Growth Engine tables in the owner's Supabase project (supabase/migrations/).
+# Manual only. Additive migrations; Supabase CLI records which ones were applied, so re-running is safe.
+on:
+  workflow_dispatch:
+    inputs:
+      dry_run:
+        description: "Only list the migrations that would be applied"
+        type: boolean
+        default: true
+
+permissions:
+  contents: read
+
+concurrency:
+  group: migrate
+  cancel-in-progress: false
+
+jobs:
+  migrate:
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    environment: database
+    steps:
+      - uses: actions/checkout@v4
+      - uses: supabase/setup-cli@v1
+        with:
+          version: latest
+      - name: Check secret
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ -z "$SUPABASE_DB_URL" ]; then echo "::error::Add the SUPABASE_DB_URL secret first (Account Setup Guide, section 4)."; exit 1; fi
+      - name: Apply migrations
+        env:
+          SUPABASE_DB_URL: ${{ secrets.SUPABASE_DB_URL }}
+        run: |
+          if [ "${{ inputs.dry_run }}" = "true" ]; then
+            supabase db push --db-url "$SUPABASE_DB_URL" --dry-run
+          else
+            supabase db push --db-url "$SUPABASE_DB_URL"
+          fi

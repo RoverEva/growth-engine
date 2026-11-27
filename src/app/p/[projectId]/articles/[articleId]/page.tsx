@@ -6,6 +6,7 @@ import {
 import { SubmitButton } from "@/components/submit-button";
 import { Badge, Card, Empty, Notice, inputClass, labelClass } from "@/components/ui";
 import { canEdit, requireProject } from "@/lib/auth";
+import { getManifest } from "@/lib/projects/registry";
 import { buildMarkdown } from "@/lib/content/publish";
 
 type Check = { id: string; category: string; points: number; max: number; passed: boolean; message: string };
@@ -13,7 +14,7 @@ type Check = { id: string; category: string; points: number; max: number; passed
 export default async function ArticlePage({ params, searchParams }: { params: Promise<{ projectId: string; articleId: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { projectId, articleId } = await params;
   const flash = await searchParams;
-  const { supabase, role } = await requireProject(projectId);
+  const { supabase, role, project } = await requireProject(projectId);
   const [{ data: article }, { data: sources }, { data: audit }, { data: brand }] = await Promise.all([
     supabase.from("articles").select("*").eq("id", articleId).eq("project_id", projectId).maybeSingle(),
     supabase.from("article_sources").select("*").eq("article_id", articleId).order("created_at"),
@@ -30,7 +31,7 @@ export default async function ArticlePage({ params, searchParams }: { params: Pr
   let preview = "";
   let previewError = "";
   try {
-    preview = buildMarkdown(article);
+    preview = buildMarkdown(article, getManifest(project.slug)?.timezone ?? "UTC");
   } catch (error) {
     previewError = error instanceof Error ? error.message : String(error);
   }
