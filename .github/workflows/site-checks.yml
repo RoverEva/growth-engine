@@ -17,40 +17,40 @@ concurrency:
 
 jobs:
   checks:
-    runs-on: ubuntu-latest
-    timeout-minutes: 20
-    strategy:
-      fail-fast: false
-      matrix:
-        project: [hatchelite, eva-video-studio]
+    runs-on: ubuntu-24.04
+    timeout-minutes: 15
+    env:
+      # GitHub's Ubuntu runners include Google Chrome: no browser download, no apt installs.
+      CHROME_PATH: /usr/bin/google-chrome
+      PLAYWRIGHT_SKIP_BROWSER_DOWNLOAD: "1"
     steps:
       - uses: actions/checkout@v4
       - uses: actions/setup-node@v4
         with:
           node-version: 22
-          cache: npm
-      - run: npm ci
-      - run: npx playwright install --with-deps chromium
-      - name: Check ${{ matrix.project }}
-        run: node scripts/site-checks.mjs ${{ matrix.project }} --report report.md
-      - name: Summary
-        if: always()
-        run: cat report.md >> "$GITHUB_STEP_SUMMARY" || true
-      - name: Lighthouse (Mondays and manual runs)
-        if: always()
+      - name: Install Playwright library only (not the app's dependencies)
+        run: |
+          PW=$(node -p "require('./package.json').devDependencies.playwright")
+          npm --prefix /tmp/pw install --no-audit --no-fund --silent "playwright@$PW"
+          ln -s /tmp/pw/node_modules node_modules
+      - name: Site checks (both projects, one job)
+        run: |
+          status=0
+          for project in hatchelite eva-video-studio; do
+            node scripts/site-checks.mjs "$project" --report "report-$project.md" || status=1
+            cat "report-$project.md" >> "$GITHUB_STEP_SUMMARY" || true
+          done
+          exit $status
+      - name: Lighthouse (Mondays and manual runs; report only)
+        if: always() && (github.event_name == 'workflow_dispatch' || github.event.schedule != '')
         continue-on-error: true
-        env:
-          PROJECT: ${{ matrix.project }}
         run: |
           if [ "${{ github.event_name }}" != "workflow_dispatch" ] && [ "$(date -u +%u)" != "1" ]; then echo "Not Monday, skipping"; exit 0; fi
-          CHROME_PATH="$(node -e "console.log(require('playwright').chromium.executablePath())")"
-          export CHROME_PATH
-          BASE=$(node -e "console.log(require('./projects/$PROJECT/site-checks.json').baseUrl)")
-          echo "### $PROJECT Lighthouse" >> "$GITHUB_STEP_SUMMARY"
-          echo "| Page | Performance | Accessibility | Best practices | SEO |" >> "$GITHUB_STEP_SUMMARY"
-          echo "| --- | --- | --- | --- | --- |" >> "$GITHUB_STEP_SUMMARY"
-          for path in $(node -e "console.log(require('./projects/$PROJECT/site-checks.json').lighthouse.join(' '))"); do
-            npx --yes lighthouse@12 "$BASE$path" --quiet --output=json --output-path=lh.json \
-              --chrome-flags="--headless=new --no-sandbox" || continue
-            node -e "const r=require('./lh.json').categories;const s=k=>Math.round(r[k].score*100);console.log('| \`$path\` | '+[s('performance'),s('accessibility'),s('best-practices'),s('seo')].join(' | ')+' |')" >> "$GITHUB_STEP_SUMMARY"
+          for PROJECT in hatchelite eva-video-studio; do
+            BASE=$(node -p "require('./projects/$PROJECT/site-checks.json').baseUrl")
+            { echo "### $PROJECT Lighthouse"; echo "| Page | Performance | Accessibility | Best practices | SEO |"; echo "| --- | --- | --- | --- | --- |"; } >> "$GITHUB_STEP_SUMMARY"
+            for path in $(node -p "require('./projects/$PROJECT/site-checks.json').lighthouse.join(' ')"); do
+              npx --yes lighthouse@12 "$BASE$path" --quiet --output=json --output-path=lh.json --chrome-flags="--headless=new --no-sandbox" || continue
+              node -e "const r=require('./lh.json').categories;const s=k=>Math.round(r[k].score*100);console.log('| \`$path\` | '+[s('performance'),s('accessibility'),s('best-practices'),s('seo')].join(' | ')+' |')" >> "$GITHUB_STEP_SUMMARY"
+            done
           done
