@@ -1,0 +1,31 @@
+{
+  "_note": "Hand-written test fixture in the response shape documented at docs.dataforseo.com/v3/dataforseo_labs/google/keyword_ideas/live (not real API output).",
+  "version": "0.1.20260101",
+  "status_code": 20000,
+  "status_message": "Ok.",
+  "time": "1.2 sec.",
+  "cost": 0.0103,
+  "tasks_count": 1,
+  "tasks_error": 0,
+  "tasks": [
+    {
+      "status_code": 20000,
+      "status_message": "Ok.",
+      "result": [
+        {
+          "seed_keywords": ["isee vocabulary"],
+          "location_code": 2840,
+          "language_code": "en",
+          "total_count": 4,
+          "items_count": 4,
+          "items": [
+            { "keyword": "isee vocabulary list", "keyword_info": { "search_volume": 880, "cpc": 1.25, "competition": 0.42, "competition_level": "MEDIUM" }, "keyword_properties": { "keyword_difficulty": 18 }, "search_intent_info": { "main_intent": "informational" } },
+            { "keyword": "ISEE Vocabulary List", "keyword_info": { "search_volume": 880 }, "keyword_properties": { "keyword_difficulty": 18 }, "search_intent_info": { "main_intent": "informational" } },
+            { "keyword": "isee prep course", "keyword_info": { "search_volume": 590, "cpc": 6.1, "competition": 0.81, "competition_level": "HIGH" }, "keyword_properties": { "keyword_difficulty": 41 }, "search_intent_info": { "main_intent": "commercial" } },
+            { "keyword": "erb login", "keyword_info": { "search_volume": 2400, "cpc": null, "competition": null }, "keyword_properties": { "keyword_difficulty": null }, "search_intent_info": { "main_intent": "navigational" } }
+          ]
+        }
+      ]
+    }
+  ]
+}

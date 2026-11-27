@@ -1,0 +1,50 @@
+import { existsSync, readFileSync } from "node:fs";
+import { resolve } from "node:path";
+import { describe, expect, it } from "vitest";
+import { businessRelevance, opportunityScore } from "@/lib/seo/opportunity";
+import { scoreArticle } from "@/lib/seo/quality";
+
+describe("opportunity score", () => {
+  it("prefers relevant, reachable keywords", () => {
+    const good = opportunityScore({ keyword: "isee vocabulary list", searchVolume: 880, keywordDifficulty: 18, intent: "informational" });
+    const hard = opportunityScore({ keyword: "isee vocabulary list", searchVolume: 880, keywordDifficulty: 85, intent: "informational" });
+    const offTopic = opportunityScore({ keyword: "erb login", searchVolume: 2400, keywordDifficulty: 10, intent: "navigational" });
+    expect(good).toBeGreaterThan(hard);
+    expect(offTopic).toBe(0);
+    expect(businessRelevance("3rd grade vocabulary words")).toBeGreaterThan(20);
+    expect(good).toBeGreaterThanOrEqual(0);
+    expect(good).toBeLessThanOrEqual(100);
+  });
+});
+
+describe("scoreArticle", () => {
+  const thin = scoreArticle({ title: "Words", metaDescription: "", slug: "Bad Slug", targetKeyword: "isee vocabulary", body: "TODO write this. It's important to note that we delve.", sourceCount: 0 });
+
+  it("fails thin, placeholder articles with clear reasons", () => {
+    expect(thin.passed).toBe(false);
+    expect(thin.score).toBeLessThan(40);
+    expect(thin.hardFails.join(" ")).toMatch(/Meta description is missing/);
+    expect(thin.hardFails.join(" ")).toMatch(/Placeholder/);
+    expect(thin.checks.find((c) => c.id === "cliches")?.passed).toBe(false);
+  });
+
+  it("keeps every check within its points", () => {
+    for (const check of thin.checks) {
+      expect(check.points).toBeLessThanOrEqual(check.max);
+    }
+    expect(thin.checks.reduce((s, c) => s + c.max, 0)).toBe(100);
+  });
+
+  const post = resolve(__dirname, "../../../hatchelite-v2-clean/src/content/blog/isee-vs-ssat.md");
+  it.skipIf(!existsSync(post))("scores the published ISEE vs SSAT post as passing", () => {
+    const source = readFileSync(post, "utf8");
+    const body = source.replace(/^---[\s\S]*?---\n/, "");
+    const description = source.match(/^description: (.*)$/m)?.[1] ?? "";
+    const result = scoreArticle({
+      title: "ISEE vs SSAT: Which Test Does Your Child Need?", metaDescription: description, slug: "isee-vs-ssat",
+      targetKeyword: "isee vs ssat", body, sourceCount: 5,
+    });
+    expect(result.hardFails).toEqual([]);
+    expect(result.score).toBeGreaterThanOrEqual(70);
+  });
+});
