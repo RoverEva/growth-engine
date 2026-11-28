@@ -84,6 +84,7 @@ export function projectSteps(m: ProjectManifest, linked: { projectCreated: boole
       state: projectSecret("GITHUB_TOKEN", m.slug) && (!gh || ghPassed) ? "done" : gh && !ghPassed ? "blocked" : "todo",
       detail: [gh ? (ghPassed ? `Verified ${shortDate(status<GithubStatus>("github.json")?.checked_at)}: own repo only, Contents + Pull requests write${gh.expires ? `, expires ${gh.expires}` : ""}.` : "Last check failed: run Connect GitHub Tokens again.") : "Paste it with Connect GitHub Tokens on your Desktop (stored in Keychain).",
         m.publishing.enabled ? "" : `Publishing is off for this project: ${m.publishing.reason ?? ""}`].filter(Boolean).join(" ") },
+    ...(m.slug === "hatchelite" ? kdpSteps() : []),
     { id: "engine-project", title: `Add ${m.name} to the engine`, who: "Claude", cost: "$0",
       why: "Creates the project's private space (keywords, drafts, channels, queue).",
       how: "Home page → New project → choose it from the knowledge base.",
@@ -93,5 +94,23 @@ export function projectSteps(m: ProjectManifest, linked: { projectCreated: boole
       how: "Project → Social → Find Buffer channels → Link the ones that belong to this brand.",
       state: linked.channels > 0 ? "done" : linked.projectCreated ? "todo" : "blocked",
       detail: linked.projectCreated ? undefined : "Needs the engine project first." },
+  ];
+}
+
+// Amazon books (HatchElite only). Official report downloads first; no scraping, no API until eligible and authorized.
+function kdpSteps(): SetupStep[] {
+  return [
+    { id: "kdp-reports", title: "Amazon KDP: download sales and royalty reports", who: "You", cost: "$0",
+      why: "Verified book sales and royalties per book, separate from clicks on the website's Amazon links.",
+      how: "KDP → Reports → Orders and Royalties → download the month (XLSX). Drop the files into Documents/growth-engine-status/kdp/ and Claude imports them.",
+      state: "todo" },
+    { id: "author-central", title: "Amazon Author Central: claim both books", who: "You", cost: "$0",
+      why: "An author page that links both books and the series, and lets you add an editorial bio.",
+      how: "author.amazon.com → sign in with the KDP account → Books → add both ASINs.",
+      state: "todo" },
+    { id: "amazon-ads", title: "Amazon Ads: one small auto campaign per book (optional)", who: "You", cost: "Ad spend you set (paid): only with your approval",
+      why: "The search-term report is the only compliant source of real Amazon keyword data.",
+      how: "KDP Bookshelf → Promote and Advertise → Create an ad campaign → Sponsored Products, automatic targeting, a daily budget you choose. Export the Search term report weekly (CSV) for Claude's recommendations. Claude never changes bids or budgets.",
+      state: "blocked", detail: "Waiting for your decision on an ad budget." },
   ];
 }
