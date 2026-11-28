@@ -1,8 +1,10 @@
 // Buffer's GraphQL API (https://developers.buffer.com). One API key per Buffer account (free plan: 1 key).
 // The key can see every channel in the account, so the engine only ever posts to channels linked to the
 // post's own project (see social_channels in the database).
+// Images are passed as public URLs (Buffer has no upload endpoint). Pinterest pins carry a board, a title and a
+// destination URL in metadata.pinterest.
 import { fetchJson } from "@/lib/retry";
-import { postText, type SendInput, type SocialAdapter } from "./types";
+import { isPinterest, postText, type SendInput, type SocialAdapter } from "./types";
 
 export const BUFFER_API = "https://api.buffer.com";
 
@@ -19,13 +21,22 @@ async function graphql<T>(apiKey: string, query: string, variables: Record<strin
 }
 
 export function bufferCreatePostVariables(input: SendInput) {
+  const pin = isPinterest(input.service);
+  if (pin && !input.imageUrl) throw new Error("Pinterest pins need an image (a public https URL).");
+  if (pin && !input.boardServiceId) throw new Error("Choose a Pinterest board for this channel first.");
+  if (input.imageUrl && !/^https:\/\//.test(input.imageUrl)) throw new Error("The image must be a public https URL.");
   return {
     input: {
       text: postText(input),
       channelId: input.externalChannelId,
       schedulingType: "automatic",
       mode: input.scheduledFor ? "customScheduled" : "addToQueue",
+      // Approval already happened in the Growth Engine (owner-only), so Buffer shouldn't hold it again.
+      needsApproval: false,
+      assets: input.imageUrl ? [{ image: { url: input.imageUrl } }] : [],
       ...(input.scheduledFor ? { dueAt: new Date(input.scheduledFor).toISOString() } : {}),
+      ...(pin ? { metadata: { pinterest: { boardServiceId: input.boardServiceId, title: input.title?.slice(0, 100) || undefined, url: input.linkUrl || undefined } } } : {}),
+      source: "growth-engine",
     },
   };
 }
@@ -44,6 +55,14 @@ export const buffer: SocialAdapter = {
       channels.push(...data.channels.map((c) => ({ externalId: c.id, service: c.service, displayName: `${c.name} (${org.name})` })));
     }
     return channels;
+  },
+
+  async listBoards(apiKey, externalChannelId) {
+    const data = await graphql<{ channel: { metadata?: { boards?: Array<{ serviceId: string; name: string }> } | null } }>(apiKey, `
+      query Boards($input: ChannelInput!) {
+        channel(input: $input) { metadata { ... on PinterestMetadata { boards { serviceId name } } } }
+      }`, { input: { id: externalChannelId } });
+    return (data.channel.metadata?.boards ?? []).map((b) => ({ serviceId: b.serviceId, name: b.name }));
   },
 
   async send(apiKey, input) {

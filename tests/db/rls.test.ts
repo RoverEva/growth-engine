@@ -218,4 +218,20 @@ describe.skipIf(!url)("database: RLS, duplicates and approval gate", () => {
         .rejects.toThrow(/start as draft or in_review/);
     });
   });
+
+  describe("imported blog pull requests", () => {
+    it("one engine article per PR, and the full approval path to published", async () => {
+      const id = await as(editor, async (c) => (await c.query(
+        "insert into public.articles (project_id, source, slug, title, target_keyword, status, quality_score, pr_number, pr_url, pr_head_sha) values ($1, 'github_pr', 'ssat-analogies-x', 'SSAT analogies', 'ssat analogies x', 'draft', 90, 10, 'https://github.com/RoverEva/hatchelite/pull/10', $2) returning id",
+        [projectId, "a".repeat(40)])).rows[0].id as string);
+      await expect(as(editor, (c) => c.query(
+        "insert into public.articles (project_id, source, slug, title, target_keyword, pr_number) values ($1, 'github_pr', 'other-slug-x', 'Other', 'other x', 10)", [projectId])))
+        .rejects.toThrow(/articles_pr_number_unique/);
+      await as(editor, (c) => c.query("update public.articles set status = 'in_review' where id = $1", [id]));
+      await expect(as(editor, (c) => c.query("update public.articles set status = 'approved' where id = $1", [id]))).rejects.toThrow(/only an owner/);
+      for (const st of ["approved", "pr_open", "published"]) await as(owner, (c) => c.query("update public.articles set status = $2 where id = $1", [id, st]));
+      const row = await as(owner, async (c) => (await c.query("select status, approved_by is not null as approved from public.articles where id = $1", [id])).rows[0]);
+      expect(row).toEqual({ status: "published", approved: true });
+    });
+  });
 });

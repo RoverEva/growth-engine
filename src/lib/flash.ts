@@ -4,8 +4,8 @@ import { redirect } from "next/navigation";
 // Server actions finish by redirecting back with a short message in the URL.
 export function back(path: string, message: { notice?: string; error?: string }): never {
   const url = new URL(path, "http://local");
-  if (message.notice) url.searchParams.set("notice", message.notice.slice(0, 300));
-  if (message.error) url.searchParams.set("error", message.error.slice(0, 300));
+  if (message.notice) url.searchParams.set("notice", message.notice.slice(0, 1200));
+  if (message.error) url.searchParams.set("error", message.error.slice(0, 600));
   redirect(url.pathname + url.search);
 }
 

@@ -91,6 +91,56 @@ export async function openArticlePullRequest(input: PublishInput) {
 
 export async function getPullRequestState(slug: string, repo: string, number: number) {
   const gh = client(slug);
-  const pr = await gh<{ state: string; merged: boolean; merged_at: string | null; html_url: string }>(`/repos/${repo}/pulls/${number}`);
-  return { merged: pr.merged, state: pr.state, mergedAt: pr.merged_at, url: pr.html_url };
+  const pr = await gh<{ state: string; merged: boolean; merged_at: string | null; html_url: string; head: { sha: string } }>(`/repos/${repo}/pulls/${number}`);
+  return { merged: pr.merged, state: pr.state, mergedAt: pr.merged_at, url: pr.html_url, headSha: pr.head.sha };
+}
+
+// ---- Blog pull requests written outside the engine (the daily blog task) -------------------------------------------
+
+export interface BlogPullRequest {
+  number: number;
+  url: string;
+  branch: string;
+  headSha: string;
+  title: string;
+  merged: boolean;
+}
+
+// Open pull requests in the project's own repo whose branch starts with `prefix` (e.g. "blog/").
+export async function listBlogPullRequests(slug: string, repo: string, prefix = "blog/"): Promise<BlogPullRequest[]> {
+  const gh = client(slug);
+  const prs = await gh<Array<{ number: number; html_url: string; title: string; head: { ref: string; sha: string }; merged_at: string | null }>>(
+    `/repos/${repo}/pulls?state=open&per_page=50`);
+  return prs.filter((p) => p.head.ref.startsWith(prefix))
+    .map((p) => ({ number: p.number, url: p.html_url, branch: p.head.ref, headSha: p.head.sha, title: p.title, merged: !!p.merged_at }));
+}
+
+export async function listPullRequestFiles(slug: string, repo: string, number: number): Promise<Array<{ filename: string; status: string }>> {
+  const gh = client(slug);
+  return gh(`/repos/${repo}/pulls/${number}/files?per_page=100`);
+}
+
+// Text content of a file at a commit (base64 from the contents API).
+export async function readRepoFile(slug: string, repo: string, path: string, ref: string): Promise<string> {
+  const gh = client(slug);
+  const file = await gh<{ content: string; encoding: string }>(`/repos/${repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(ref)}`);
+  return Buffer.from(file.content, file.encoding === "base64" ? "base64" : "utf8").toString("utf8");
+}
+
+// Merges a pull request, but only if its head is still the commit the owner approved (sha). Never force.
+export async function mergePullRequest(slug: string, repo: string, number: number, sha: string, title: string) {
+  const gh = client(slug);
+  return gh<{ merged: boolean; sha: string; message: string }>(`/repos/${repo}/pulls/${number}/merge`, {
+    method: "PUT",
+    body: JSON.stringify({ sha, merge_method: "squash", commit_title: `${title} (#${number})` }),
+  });
+}
+
+// Raw bytes of a file at a commit (images in a blog PR, for previews before it is merged).
+export async function readRepoFileBytes(slug: string, repo: string, path: string, ref: string): Promise<ArrayBuffer> {
+  const res = await fetch(`${API}/repos/${repo}/contents/${encodeURI(path)}?ref=${encodeURIComponent(ref)}`, {
+    headers: { ...headers(slug), Accept: "application/vnd.github.raw" }, signal: AbortSignal.timeout(20000), cache: "no-store",
+  });
+  if (!res.ok) throw new Error(`GitHub returned ${res.status} for ${path}`);
+  return res.arrayBuffer();
 }

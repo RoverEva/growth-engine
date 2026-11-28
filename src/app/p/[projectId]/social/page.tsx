@@ -1,12 +1,12 @@
 import Link from "next/link";
-import { createSocialPost, deleteSocialPost, linkChannel, unlinkChannel } from "@/app/actions/social";
+import { createSocialPost, deleteSocialPost, linkChannel, setChannelBoard, unlinkChannel } from "@/app/actions/social";
 import { QueueActions } from "@/components/queue-actions";
 import { SubmitButton } from "@/components/submit-button";
 import { Badge, Card, Empty, Notice, inputClass, labelClass } from "@/components/ui";
 import { canEdit, requireProject } from "@/lib/auth";
 import { errorText } from "@/lib/flash";
 import { ADAPTERS, isProviderConfigured, providerKey } from "@/lib/social";
-import type { ProviderChannel, SocialProvider } from "@/lib/social/types";
+import { isPinterest, type ProviderBoard, type ProviderChannel, type SocialProvider } from "@/lib/social/types";
 
 export default async function SocialPage({ params, searchParams }: { params: Promise<{ projectId: string }>; searchParams: Promise<Record<string, string | undefined>> }) {
   const { projectId } = await params;
@@ -29,6 +29,15 @@ export default async function SocialPage({ params, searchParams }: { params: Pro
       discoverError = errorText(error);
     }
   }
+  // Pinterest boards for linked Pinterest channels (owners pick the default board once).
+  const boards = new Map<string, ProviderBoard[] | string>();
+  if (isOwner) {
+    for (const c of channels ?? []) {
+      if (!isPinterest(c.service) || c.provider !== "buffer") continue;
+      try { boards.set(c.id, await (ADAPTERS.buffer.listBoards?.(providerKey("buffer", project.slug), c.external_id) ?? Promise.resolve([]))); }
+      catch (error) { boards.set(c.id, errorText(error)); }
+    }
+  }
   const linkedIds = new Set((channels ?? []).map((c) => `${c.provider}:${c.external_id}`));
 
   return (
@@ -44,7 +53,23 @@ export default async function SocialPage({ params, searchParams }: { params: Pro
           <ul className="divide-y divide-slate-100 text-sm">
             {channels.map((c) => (
               <li key={c.id} className="flex items-center justify-between gap-3 py-2">
-                <span><Badge value={c.provider} /> {c.display_name || c.external_id} <span className="text-slate-500">({c.service || "unknown service"})</span></span>
+                <span><Badge value={c.provider} /> {c.display_name || c.external_id} <span className="text-slate-500">({c.service || "unknown service"})</span>
+                  {isPinterest(c.service) ? <span className="ml-2 text-xs text-slate-600">Board: {c.board_name || <strong className="text-amber-700">not chosen</strong>}</span> : null}
+                  {isOwner && isPinterest(c.service) ? (() => {
+                    const list = boards.get(c.id);
+                    if (typeof list === "string") return <span className="ml-2 text-xs text-red-700">{list}</span>;
+                    if (!list?.length) return null;
+                    return (
+                      <form action={setChannelBoard.bind(null, projectId, c.id)} className="mt-1 flex gap-2">
+                        <select className={`${inputClass} w-64`} name="board" defaultValue={c.board_service_id ? `${c.board_service_id}|${c.board_name ?? ""}` : ""} aria-label="Pinterest board">
+                          <option value="">Choose a board…</option>
+                          {list.map((b) => <option key={b.serviceId} value={`${b.serviceId}|${b.name}`}>{b.name}</option>)}
+                        </select>
+                        <SubmitButton variant="secondary" pending="Saving…">Save board</SubmitButton>
+                      </form>
+                    );
+                  })() : null}
+                </span>
                 {isOwner ? <form action={unlinkChannel.bind(null, projectId, c.id)}><SubmitButton variant="danger" pending="Unlinking…">Unlink</SubmitButton></form> : null}
               </li>
             ))}
@@ -95,8 +120,12 @@ export default async function SocialPage({ params, searchParams }: { params: Pro
                 </select>
               </label>
               <label className={labelClass}>Text<textarea className={inputClass} name="body" rows={5} maxLength={3000} required /></label>
+              <div className="grid gap-3 sm:grid-cols-2">
+                <label className={labelClass}>Image URL (required for Pinterest)<input className={inputClass} name="image_url" type="url" pattern="https://.*" placeholder={`${project.site_url}/pins/…jpg`} /></label>
+                <label className={labelClass}>Pin title (Pinterest, optional)<input className={inputClass} name="title" maxLength={100} /></label>
+              </div>
               <div className="grid gap-3 sm:grid-cols-3">
-                <label className={labelClass}>Link (optional)<input className={inputClass} name="link_url" type="url" pattern="https://.*" placeholder={`${project.site_url}/…`} /></label>
+                <label className={labelClass}>Link (optional; UTM tags are added when sent)<input className={inputClass} name="link_url" type="url" pattern="https://.*" placeholder={`${project.site_url}/…`} /></label>
                 <label className={labelClass}>Publish at (optional)<input className={inputClass} name="scheduled_for" type="datetime-local" /></label>
                 <label className={labelClass}>Save as
                   <select className={inputClass} name="submit" defaultValue="review"><option value="review">Submit for approval</option><option value="draft">Draft</option></select>
@@ -119,6 +148,9 @@ export default async function SocialPage({ params, searchParams }: { params: Pro
                   <span className="text-slate-500">{p.social_channels?.display_name ?? "channel"} · {p.scheduled_for ? new Date(p.scheduled_for).toLocaleString("en-US") : "next queue slot"}</span>
                 </div>
                 <p className="whitespace-pre-wrap text-slate-800">{p.body}</p>
+                {p.title ? <p className="font-semibold text-slate-800">{p.title}</p> : null}
+                {/* eslint-disable-next-line @next/next/no-img-element -- external pin preview, not page content */}
+                {p.image_url ? <img src={p.image_url} alt="" className="h-40 w-auto rounded border border-slate-200 object-contain" /> : null}
                 {p.link_url ? <a className="text-violet-700 underline" href={p.link_url}>{p.link_url}</a> : null}
                 {p.review_note && p.status === "rejected" ? <p className="text-red-700">Rejected: {p.review_note}</p> : null}
                 {p.last_error ? <p className="text-red-700">Last error: {p.last_error}</p> : null}

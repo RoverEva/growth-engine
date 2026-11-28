@@ -26,6 +26,11 @@ https://claude.ai/artifact/PADtY7AmhebTpe8AiyE871).
   _Placeholders:_ Search Console verification status (needs the GSC sync), Buffer field names verified only against
   Buffer's docs until the owner's key is added.
 
+- **Amazon KDP module (HatchElite, report-first):** book registry (`projects/hatchelite/books/books.json`), KDP
+  royalty/printing-cost calculator from KDP Help, Amazon Ads search-term report import + recommendations (no bid
+  changes), listing + 7 backend keywords + A+ drafts for both books, open-source evaluation (`docs/decisions/0007`).
+  _Waiting on the owner:_ which ASIN is which book, list prices, page counts, interior sample PDFs.
+
 ## Next
 2. **Multi-project foundation (remaining):** additive migration (publishing_targets, products, audiences, knowledge_entries,
    crawl tables, outreach, strategy, GSC, conversions). Done in step 2: defaults, switcher, relevance terms,
@@ -44,6 +49,7 @@ impact: Search Console → PostHog funnels → payment-reliability checks → en
 outreach.
 
 ## Waiting on the owner
+- Search Console: **connected for both brands** (2026-11-27). Daily snapshots run on the owner's Mac (`docs/accounts.md`).
 - Merge decisions: growth-engine #1, hatchelite #9, EVA #17 and #18 (EVA #18 also needs the privacy text approved and
   `legal/legal.json` `last_updated` changed).
 - Optional: one test parent account per site (no payment card) so the daily check can confirm checkout opens.
