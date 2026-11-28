@@ -1,9 +1,8 @@
 "use server";
 import { requireProject } from "@/lib/auth";
 import { back, errorText, field } from "@/lib/flash";
-import { runAutomation } from "@/lib/runs";
-import { ADAPTERS, assertSameProject, providerKey } from "@/lib/social";
-import { campaignFor, withUtm, type SocialProvider } from "@/lib/social/types";
+import { deliverPost } from "@/lib/social/deliver";
+import type { SocialProvider } from "@/lib/social/types";
 
 const socialPath = (projectId: string) => `/p/${projectId}/social`;
 const provider = (value: string): SocialProvider => {
@@ -108,36 +107,8 @@ export async function sendSocialPost(projectId: string, postId: string, form?: F
   const to = returnTo(form, socialPath(projectId));
   let notice = "";
   try {
-    const { supabase, user, project } = await requireProject(projectId, "editor");
-    const { data: post } = await supabase.from("social_posts").select("*").eq("id", postId).eq("project_id", projectId).single();
-    if (!post) throw new Error("Post not found.");
-    if (post.status !== "approved") throw new Error("Only approved posts can be sent.");
-    const { data: channel } = await supabase.from("social_channels").select("*").eq("id", post.channel_id).eq("project_id", projectId).single();
-    if (!channel) throw new Error("This post's channel is not linked to this project.");
-    assertSameProject(post, channel);
-    const adapter = ADAPTERS[channel.provider as SocialProvider];
-    const apiKey = providerKey(adapter.provider, project.slug);
-
-    try {
-      const { output } = await runAutomation(supabase, {
-        projectId, kind: "social_send", userId: user.id, input: { postId, provider: adapter.provider, channel: channel.external_id },
-        idempotencyKey: `social:${postId}`, attempts: 1,
-      }, async (log) => {
-        const result = await adapter.send(apiKey, {
-          externalChannelId: channel.external_id, service: channel.service, text: post.body,
-          linkUrl: withUtm(post.link_url, channel.service, campaignFor(post.link_url)),
-          imageUrl: post.image_url, title: post.title, boardServiceId: channel.board_service_id, scheduledFor: post.scheduled_for,
-        });
-        log(`${adapter.provider} accepted post ${result.externalPostId} for ${channel.display_name || channel.external_id}.`);
-        return { output: result };
-      });
-      const { error } = await supabase.from("social_posts").update({ status: "queued", external_post_id: output.externalPostId, last_error: null }).eq("id", postId);
-      if (error) throw error;
-      notice = `Sent to ${adapter.provider}. It publishes ${post.scheduled_for ? `at ${new Date(post.scheduled_for).toLocaleString("en-US")}` : "at the channel's next queue slot"}.`;
-    } catch (error) {
-      await supabase.from("social_posts").update({ status: "failed", last_error: errorText(error).slice(0, 500) }).eq("id", postId);
-      throw error;
-    }
+    const ctx = await requireProject(projectId, "editor");
+    notice = await deliverPost(ctx, postId);
   } catch (error) {
     back(to, { error: friendly(error) });
   }

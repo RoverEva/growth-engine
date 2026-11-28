@@ -1,5 +1,7 @@
 import Link from "next/link";
+import { approveAndPublish, importBlogPullRequests, sendWhenLive } from "@/app/actions/pipeline";
 import { QueueActions } from "@/components/queue-actions";
+import { SubmitButton } from "@/components/submit-button";
 import { TopBar } from "@/components/top-bar";
 import { Badge, Card, Empty, Notice } from "@/components/ui";
 import type { Role } from "@/lib/auth";
@@ -18,16 +20,17 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
   }
   const ids = [...roles.keys()];
   const [{ data: articles }, { data: posts }] = ids.length ? await Promise.all([
-    supabase.from("articles").select("id, project_id, title, status, quality_score, scheduled_for, pr_url, updated_at")
-      .in("project_id", ids).in("status", ["in_review", "approved", "pr_open"]).order("updated_at", { ascending: false }),
-    supabase.from("social_posts").select("id, project_id, body, status, scheduled_for, link_url, last_error, social_channels(display_name, service, provider)")
+    supabase.from("articles").select("id, project_id, title, slug, status, source, quality_score, scheduled_for, pr_url, pr_number, pr_merged_at, published_url, updated_at")
+      .in("project_id", ids).in("status", ["draft", "in_review", "approved", "pr_open", "published"]).order("updated_at", { ascending: false }).limit(60),
+    supabase.from("social_posts").select("id, project_id, article_id, body, title, image_url, status, scheduled_for, link_url, last_error, social_channels(display_name, service, provider)")
       .in("project_id", ids).in("status", ["in_review", "approved", "failed", "queued"]).order("updated_at", { ascending: false }).limit(200),
   ]) : [{ data: [] }, { data: [] }];
 
   const groups = ids.map((id) => ({
     id, ...roles.get(id)!,
-    articles: (articles ?? []).filter((a) => a.project_id === id),
-    posts: (posts ?? []).filter((p) => p.project_id === id),
+    articles: (articles ?? []).filter((a) => a.project_id === id && (a.status !== "published" && a.status !== "draft" || a.source === "github_pr")),
+    posts: (posts ?? []).filter((p) => p.project_id === id && !p.article_id),
+    postsFor: (articleId: string) => (posts ?? []).filter((p) => p.article_id === articleId),
   }));
   const waiting = (articles ?? []).filter((a) => a.status === "in_review").length + (posts ?? []).filter((p) => p.status === "in_review").length;
 
@@ -42,18 +45,55 @@ export default async function QueuePage({ searchParams }: { searchParams: Promis
         <Notice notice={flash.notice} error={flash.error} />
         {groups.length === 0 ? <Empty>You are not a member of any project yet.</Empty> : null}
         {groups.map((g) => (
-          <Card key={g.id} title={g.name} actions={<span className="flex items-center gap-2"><Badge value={g.role} /><Link className="text-sm text-violet-700 underline" href={`/p/${g.id}`}>Open project</Link></span>}>
+          <Card key={g.id} title={g.name} actions={<span className="flex items-center gap-2"><form action={importBlogPullRequests.bind(null, g.id)}><SubmitButton variant="secondary" pending="Importing…">Import blog PRs</SubmitButton></form><Badge value={g.role} /><Link className="text-sm text-violet-700 underline" href={`/p/${g.id}`}>Open project</Link></span>}>
             <h3 className="mb-2 text-sm font-semibold text-slate-700">Blog articles</h3>
             {g.articles.length ? (
               <ul className="mb-4 divide-y divide-slate-100 text-sm">
-                {g.articles.map((a) => (
-                  <li key={a.id} className="flex flex-wrap items-center justify-between gap-2 py-2">
-                    <span><Badge value={a.status} /> <Link className="font-medium text-violet-700 underline" href={`/p/${g.id}/articles/${a.id}`}>{a.title}</Link> <span className="text-slate-500">score {a.quality_score ?? "–"}</span></span>
-                    <span className="text-slate-500">
-                      {a.status === "in_review" ? "Review and approve on the article page" : a.status === "approved" ? "Approved: publish opens a pull request" : <a className="underline" href={a.pr_url ?? "#"}>Pull request open: merge to publish</a>}
-                    </span>
-                  </li>
-                ))}
+                {g.articles.map((a) => {
+                  const linked = g.postsFor(a.id);
+                  return (
+                    <li key={a.id} className="grid gap-2 py-3">
+                      <span className="flex flex-wrap items-center gap-2">
+                        <Badge value={a.status} />
+                        <Link className="font-medium text-violet-700 underline" href={`/p/${g.id}/articles/${a.id}`}>{a.title}</Link>
+                        <span className="text-slate-500">quality {a.quality_score ?? "–"}</span>
+                        {a.pr_url ? <a className="text-slate-500 underline" href={a.pr_url}>PR #{a.pr_number}</a> : null}
+                        {a.published_url ? <a className="text-emerald-700 underline" href={a.published_url}>live</a> : null}
+                      </span>
+                      {linked.length ? (
+                        <div className="flex flex-wrap gap-3">
+                          {linked.map((p) => {
+                            const ch = p.social_channels as unknown as { service: string } | null;
+                            return (
+                              <div key={p.id} className="w-60 rounded-lg border border-slate-200 p-2 text-xs">
+                                {/* eslint-disable-next-line @next/next/no-img-element -- external pin preview */}
+                                {p.image_url ? <img src={a.pr_merged_at ? p.image_url : `/api/pr-asset?post=${p.id}`} alt="" className="mb-1 h-40 w-full rounded object-contain" /> : null}
+                                <p className="font-semibold">{ch?.service} <Badge value={p.status} /></p>
+                                {p.title ? <p className="font-medium">{p.title}</p> : null}
+                                <p className="line-clamp-4 whitespace-pre-wrap text-slate-700">{p.body}</p>
+                                {p.last_error ? <p className="text-red-700">{p.last_error}</p> : null}
+                              </div>
+                            );
+                          })}
+                        </div>
+                      ) : null}
+                      <div className="flex flex-wrap items-center gap-2">
+                        {a.source === "github_pr" && g.role === "owner" && ["in_review", "approved", "pr_open"].includes(a.status) && !a.pr_merged_at ? (
+                          <form action={approveAndPublish.bind(null, g.id, a.id)}>
+                            <SubmitButton pending="Publishing…">Approve &amp; publish</SubmitButton>
+                          </form>
+                        ) : null}
+                        {a.pr_merged_at && linked.some((p) => p.status === "approved") ? (
+                          <form action={sendWhenLive.bind(null, g.id, a.id)}><SubmitButton variant="secondary" pending="Checking…">Send when live</SubmitButton></form>
+                        ) : null}
+                        <span className="text-xs text-slate-500">
+                          {a.source === "github_pr" && !a.pr_merged_at ? "Approve & publish merges the pull request (the site deploys it) and sends the posts to Buffer once the page is live." : null}
+                          {a.status === "draft" && a.source === "github_pr" ? " Below the quality bar: open it to see why." : null}
+                        </span>
+                      </div>
+                    </li>
+                  );
+                })}
               </ul>
             ) : <p className="mb-4 text-sm text-slate-500">No articles waiting.</p>}
             <h3 className="mb-2 text-sm font-semibold text-slate-700">Social posts</h3>
