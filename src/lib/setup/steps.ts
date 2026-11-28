@@ -80,7 +80,7 @@ export function projectSteps(m: ProjectManifest, linked: { projectCreated: boole
       state: projectSecret("STRIPE_RESTRICTED_KEY", m.slug) ? "done" : "todo" },
     { id: "github", title: `GitHub token for ${m.repo} only`, who: "You", cost: "$0",
       why: "Lets the engine open pull requests with approved content. Merging stays your decision.",
-      how: `Fine-grained token, repository access: only ${m.repo}; permissions Contents and Pull requests: Read and write. Save it as ${ghName}.`,
+      how: `Fine-grained token, repository access: only ${m.repo}; permissions Contents and Pull requests: Read and write. Paste it with Connect GitHub Tokens on your Desktop (Keychain item growth-engine.${ghName}).`,
       state: projectSecret("GITHUB_TOKEN", m.slug) && (!gh || ghPassed) ? "done" : gh && !ghPassed ? "blocked" : "todo",
       detail: [gh ? (ghPassed ? `Verified ${shortDate(status<GithubStatus>("github.json")?.checked_at)}: own repo only, Contents + Pull requests write${gh.expires ? `, expires ${gh.expires}` : ""}.` : "Last check failed: run Connect GitHub Tokens again.") : "Paste it with Connect GitHub Tokens on your Desktop (stored in Keychain).",
         m.publishing.enabled ? "" : `Publishing is off for this project: ${m.publishing.reason ?? ""}`].filter(Boolean).join(" ") },
