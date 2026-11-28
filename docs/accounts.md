@@ -18,6 +18,10 @@ _Last updated: 2026-11-27._
 | PostHog project `evavideostudio.com` (own organization) | EVA | public `phc_` key in `site/analytics-config.js` | `EVA_POSTHOG_KEY` | Event capture (cookieless) | Not created yet | n/a |
 | Supabase project `growth-engine` | engine | `~/Documents/growth-engine/.env.local` (600) | `SUPABASE_URL`, `SUPABASE_ANON_KEY`, `SUPABASE_DB_URL` | Engine database | Not created yet | n/a |
 | Stripe restricted keys (read-only) | per brand | Keychain (planned) | `STRIPE_RESTRICTED_KEY__<SLUG>` | Read charges, sessions, subscriptions | Not created yet | n/a |
+| Amazon KDP account (publisher of both paperbacks) | HatchElite | owner's Amazon login (not stored) | n/a | Bookshelf; Orders and Royalties reports as downloads | **Exists**; reports imported by upload, no API | n/a |
+| Amazon Author Central | HatchElite | owner's Amazon login | n/a | Author page, book linking | Not set up yet | n/a |
+| Amazon Ads (Sponsored Products for KDP books) | HatchElite | owner's Amazon login | n/a | Search-term and campaign report CSV exports | Not set up yet; owner sets budgets and bids by hand | n/a |
+| Amazon Attribution | HatchElite | n/a | n/a | Click-to-sale attribution for off-Amazon traffic | Only if the account is eligible; not requested | n/a |
 | DataForSEO | both | n/a | `DATAFORSEO_*` | Keyword volumes | **Off** (paid; deferred by owner) | n/a |
 
 ## Retired credentials

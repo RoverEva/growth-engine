@@ -1,0 +1,70 @@
+{
+  "$comment": "HatchElite book registry (source of truth for the Books page, listings, royalty math and promotion). Facts come from the print-ready cover files in the owner's Downloads (2026-11-25) unless marked otherwise. Fields set to null are unknown: fill from the KDP Bookshelf (never from scraping Amazon).",
+  "royalty_rules_source": "https://kdp.amazon.com/en_US/help/topic/G201834340 (Paperback Printing Cost) and G201834330 (paperback royalties), checked 2026-11-27",
+  "books": [
+    {
+      "slug": "ssat-isee-middle-level-vocabulary",
+      "title": "SSAT & ISEE Middle Level Vocabulary Daily Practice",
+      "level": "Middle Level",
+      "grades": "5–8",
+      "format": "paperback",
+      "trim": "8.5 x 11 in",
+      "ink": "black",
+      "words": "1,500+",
+      "lessons": 77,
+      "practice_questions": 3320,
+      "mini_tests": 8,
+      "sample_word": {
+        "word": "meticulous",
+        "pos": "adj.",
+        "definition": "Extremely careful about every small detail.",
+        "example": "The meticulous artist spent hours painting a single feather."
+      },
+      "theme_range": "from describing people to danger and disaster",
+      "asin": "B0HT4PX3TP",
+      "isbn": null,
+      "list_price_usd": 34.99,
+      "page_count": null,
+      "page_count_estimate": 462,
+      "page_count_estimate_note": "unverified: from the cover's spine width (1.04 in) at KDP's white-paper thickness; confirm in KDP",
+      "expanded_distribution": null,
+      "cover_front": "covers/ssat-isee-middle-level-vocabulary-1200.jpg",
+      "amazon_url": "https://www.amazon.com/dp/B0HT4PX3TP",
+      "asin_source": "owner, 2026-11-27",
+      "list_price_source": "owner, 2026-11-27",
+      "website_url": "https://hatchelite.com/books/ssat-isee-middle-level-vocabulary"
+    },
+    {
+      "slug": "ssat-isee-upper-level-vocabulary",
+      "title": "SSAT & ISEE Upper Level Vocabulary Daily Practice",
+      "level": "Upper Level",
+      "grades": "8–11",
+      "format": "paperback",
+      "trim": "8.5 x 11 in",
+      "ink": "black",
+      "words": "1,500",
+      "lessons": 75,
+      "practice_questions": 3240,
+      "mini_tests": 8,
+      "sample_word": {
+        "word": "perspicacious",
+        "pos": "adj.",
+        "definition": "Quick to notice and understand things.",
+        "example": "The perspicacious detective spotted the tiny scratch on the lock."
+      },
+      "theme_range": "from courage and fear to law and justice",
+      "asin": "B0HT33L66S",
+      "isbn": null,
+      "list_price_usd": 34.99,
+      "page_count": null,
+      "page_count_estimate": 451,
+      "page_count_estimate_note": "unverified: from the cover's spine width (1.016 in) at KDP's white-paper thickness; confirm in KDP",
+      "expanded_distribution": null,
+      "cover_front": "covers/ssat-isee-upper-level-vocabulary-1200.jpg",
+      "amazon_url": "https://www.amazon.com/dp/B0HT33L66S",
+      "asin_source": "owner, 2026-11-27",
+      "list_price_source": "owner, 2026-11-27",
+      "website_url": "https://hatchelite.com/books/ssat-isee-upper-level-vocabulary"
+    }
+  ]
+}
