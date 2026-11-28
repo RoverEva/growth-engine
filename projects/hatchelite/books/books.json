@@ -14,18 +14,25 @@
       "lessons": 77,
       "practice_questions": 3320,
       "mini_tests": 8,
-      "sample_word": { "word": "meticulous", "pos": "adj.", "definition": "Extremely careful about every small detail.", "example": "The meticulous artist spent hours painting a single feather." },
+      "sample_word": {
+        "word": "meticulous",
+        "pos": "adj.",
+        "definition": "Extremely careful about every small detail.",
+        "example": "The meticulous artist spent hours painting a single feather."
+      },
       "theme_range": "from describing people to danger and disaster",
-      "asin": null,
-      "asin_candidates": ["B0HT33L66S", "B0HT4PX3TP"],
+      "asin": "B0HT4PX3TP",
       "isbn": null,
-      "list_price_usd": null,
+      "list_price_usd": 34.99,
       "page_count": null,
       "page_count_estimate": 462,
       "page_count_estimate_note": "unverified: from the cover's spine width (1.04 in) at KDP's white-paper thickness; confirm in KDP",
       "expanded_distribution": null,
       "cover_front": "covers/ssat-isee-middle-level-vocabulary-1200.jpg",
-      "amazon_url": null
+      "amazon_url": "https://www.amazon.com/dp/B0HT4PX3TP",
+      "asin_source": "owner, 2026-11-27",
+      "list_price_source": "owner, 2026-11-27",
+      "website_url": "https://hatchelite.com/books/ssat-isee-middle-level-vocabulary"
     },
     {
       "slug": "ssat-isee-upper-level-vocabulary",
@@ -39,18 +46,25 @@
       "lessons": 75,
       "practice_questions": 3240,
       "mini_tests": 8,
-      "sample_word": { "word": "perspicacious", "pos": "adj.", "definition": "Quick to notice and understand things.", "example": "The perspicacious detective spotted the tiny scratch on the lock." },
+      "sample_word": {
+        "word": "perspicacious",
+        "pos": "adj.",
+        "definition": "Quick to notice and understand things.",
+        "example": "The perspicacious detective spotted the tiny scratch on the lock."
+      },
       "theme_range": "from courage and fear to law and justice",
-      "asin": null,
-      "asin_candidates": ["B0HT33L66S", "B0HT4PX3TP"],
+      "asin": "B0HT33L66S",
       "isbn": null,
-      "list_price_usd": null,
+      "list_price_usd": 34.99,
       "page_count": null,
       "page_count_estimate": 451,
       "page_count_estimate_note": "unverified: from the cover's spine width (1.016 in) at KDP's white-paper thickness; confirm in KDP",
       "expanded_distribution": null,
       "cover_front": "covers/ssat-isee-upper-level-vocabulary-1200.jpg",
-      "amazon_url": null
+      "amazon_url": "https://www.amazon.com/dp/B0HT33L66S",
+      "asin_source": "owner, 2026-11-27",
+      "list_price_source": "owner, 2026-11-27",
+      "website_url": "https://hatchelite.com/books/ssat-isee-upper-level-vocabulary"
     }
   ]
 }

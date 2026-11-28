@@ -14,6 +14,26 @@ live book can need a new edition: only the description, keywords and categories 
 - SSAT® and ISEE® are trademarks used descriptively, with the same disclaimer as the covers.
 - **Nothing is changed automatically.** These are drafts; the owner pastes what they approve.
 
+## Price and royalty (owner's list price $34.99, 2026-11-27)
+
+ASINs: **Middle Level B0HT4PX3TP**, **Upper Level B0HT33L66S** (owner). Royalty per copy on Amazon.com from
+`src/lib/kdp/royalty.ts` (KDP Help formula, 60% rate, black ink, large trim). Page counts are **estimates from the spine
+width**: confirm in KDP and the numbers update.
+
+| Book | List price | Printing | Royalty (Amazon.com) | Royalty (Expanded Distribution) | Break-even ACOS |
+| --- | --- | --- | --- | --- | --- |
+| Middle (~462 pp, est.) | $34.99 | $8.85 | $12.14 | $5.15 | 35% |
+| Middle (~462 pp, est.) | $29.99 | $8.85 | $9.14 | $3.15 | 31% |
+| Middle (~462 pp, est.) | $24.99 | $8.85 | $6.14 | $1.15 | 25% |
+| Upper (~451 pp, est.) | $34.99 | $8.67 | $12.32 | $5.33 | 35% |
+| Upper (~451 pp, est.) | $29.99 | $8.67 | $9.32 | $3.33 | 31% |
+| Upper (~451 pp, est.) | $24.99 | $8.67 | $6.32 | $1.33 | 25% |
+
+Discounts on paperbacks are done by lowering the list price in KDP; a change can take up to 72 hours to show and
+Amazon may also discount on its own (royalty stays based on your list price). Below about $19.99, Expanded
+Distribution copies lose money. Break-even ACOS is the share of the price an ad can cost before an ad-driven sale
+earns nothing.
+
 ## Keyword research (no scraping)
 
 Amazon's autocomplete, search and product pages aren't scraped (Amazon Conditions of Use). Keyword data comes from:
