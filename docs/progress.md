@@ -44,6 +44,7 @@ impact: Search Console → PostHog funnels → payment-reliability checks → en
 outreach.
 
 ## Waiting on the owner
+- Search Console: **connected for both brands** (2026-11-27). Daily snapshots run on the owner's Mac (`docs/accounts.md`).
 - Merge decisions: growth-engine #1, hatchelite #9, EVA #17 and #18 (EVA #18 also needs the privacy text approved and
   `legal/legal.json` `last_updated` changed).
 - Optional: one test parent account per site (no payment card) so the daily check can confirm checkout opens.
