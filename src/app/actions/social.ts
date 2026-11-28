@@ -3,7 +3,7 @@ import { requireProject } from "@/lib/auth";
 import { back, errorText, field } from "@/lib/flash";
 import { runAutomation } from "@/lib/runs";
 import { ADAPTERS, assertSameProject, providerKey } from "@/lib/social";
-import type { SocialProvider } from "@/lib/social/types";
+import { campaignFor, withUtm, type SocialProvider } from "@/lib/social/types";
 
 const socialPath = (projectId: string) => `/p/${projectId}/social`;
 const provider = (value: string): SocialProvider => {
@@ -56,6 +56,7 @@ export async function createSocialPost(projectId: string, form: FormData) {
     const { error } = await supabase.from("social_posts").insert({
       project_id: projectId, channel_id: field(form, "channel_id"), body: String(form.get("body") ?? "").trim(),
       link_url: link || null, scheduled_for: when ? new Date(when).toISOString() : null,
+      image_url: field(form, "image_url") || null, title: field(form, "title") || null,
       status: field(form, "submit") === "draft" ? "draft" : "in_review", created_by: user.id,
     });
     if (error) throw error;
@@ -123,7 +124,9 @@ export async function sendSocialPost(projectId: string, postId: string, form?: F
         idempotencyKey: `social:${postId}`, attempts: 1,
       }, async (log) => {
         const result = await adapter.send(apiKey, {
-          externalChannelId: channel.external_id, service: channel.service, text: post.body, linkUrl: post.link_url, scheduledFor: post.scheduled_for,
+          externalChannelId: channel.external_id, service: channel.service, text: post.body,
+          linkUrl: withUtm(post.link_url, channel.service, campaignFor(post.link_url)),
+          imageUrl: post.image_url, title: post.title, boardServiceId: channel.board_service_id, scheduledFor: post.scheduled_for,
         });
         log(`${adapter.provider} accepted post ${result.externalPostId} for ${channel.display_name || channel.external_id}.`);
         return { output: result };
@@ -139,4 +142,18 @@ export async function sendSocialPost(projectId: string, postId: string, form?: F
     back(to, { error: friendly(error) });
   }
   back(to, { notice });
+}
+
+// Sets the default Pinterest board for a linked channel (owners only).
+export async function setChannelBoard(projectId: string, channelId: string, form: FormData) {
+  try {
+    const { supabase } = await requireProject(projectId, "owner");
+    const [serviceId, ...name] = field(form, "board").split("|");
+    const { error } = await supabase.from("social_channels").update({ board_service_id: serviceId || null, board_name: name.join("|") || null })
+      .eq("id", channelId).eq("project_id", projectId);
+    if (error) throw error;
+  } catch (error) {
+    back(socialPath(projectId), { error: friendly(error) });
+  }
+  back(socialPath(projectId), { notice: "Pinterest board saved for this channel." });
 }
