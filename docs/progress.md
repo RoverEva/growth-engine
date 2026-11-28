@@ -26,6 +26,11 @@ https://claude.ai/artifact/PADtY7AmhebTpe8AiyE871).
   _Placeholders:_ Search Console verification status (needs the GSC sync), Buffer field names verified only against
   Buffer's docs until the owner's key is added.
 
+- **Amazon KDP module (HatchElite, report-first):** book registry (`projects/hatchelite/books/books.json`), KDP
+  royalty/printing-cost calculator from KDP Help, Amazon Ads search-term report import + recommendations (no bid
+  changes), listing + 7 backend keywords + A+ drafts for both books, open-source evaluation (`docs/decisions/0007`).
+  _Waiting on the owner:_ which ASIN is which book, list prices, page counts, interior sample PDFs.
+
 ## Next
 2. **Multi-project foundation (remaining):** additive migration (publishing_targets, products, audiences, knowledge_entries,
    crawl tables, outreach, strategy, GSC, conversions). Done in step 2: defaults, switcher, relevance terms,
